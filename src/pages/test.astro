@@ -1,0 +1,24 @@
+---
+---
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test Page</title>
+<style>
+body {
+background: red;
+color: white;
+font-size: 24px;
+padding: 20px;
+}
+</style>
+</head>
+<body>
+<h1>TEST PAGE - Can you see this?</h1>
+<p>If you can see this red page, the server is working.</p>
+<p>Current URL: <span id="url"></span></p>
+<script>
+document.getElementById('url').textContent = window.location.href;
+</script>
+</body>
+</html>

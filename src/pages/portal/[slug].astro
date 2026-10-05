@@ -1,0 +1,346 @@
+
+
+
+
+
+---
+import MainLayout from '../../layouts/main.astro';
+import { COLLECTIONS } from '../../lib/collections-config';
+import { WebflowClient } from 'webflow-api';
+import { baseUrl } from '../../lib/base-url';
+import SyncRoomPhotos from '../../components/SyncRoomPhotos';
+
+const { slug } = Astro.params;
+const pageClass = 'portal-collection';
+
+// Get collection from static config
+const collection = COLLECTIONS.find(c => c.slug === slug);
+
+if (!collection) {
+  console.error(`Collection not found for slug: ${slug}`);
+  return Astro.redirect(`${baseUrl}/portal`);
+}
+
+console.log(`Loading collection: ${collection.name} (${collection.id})`);
+
+// Get token from environment - ONLY use WEBFLOW_CMS_API_TOKEN
+const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || 
+              import.meta.env.WEBFLOW_CMS_API_TOKEN;
+
+if (!token) {
+  console.error('No API token found');
+}
+
+const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
+
+// Initialize client
+const client = new WebflowClient({
+  accessToken: token,
+  ...(apiHost && { baseUrl: apiHost })
+});
+
+// Fetch items
+let items: any[] = [];
+let error: string | null = null;
+
+try {
+  console.log(`Fetching items for collection ${collection.id}...`);
+  
+  // Reduce limit to prevent memory issues
+  const itemsResponse = await client.collections.items.listItemsLive(collection.id, {
+    limit: 50,
+    offset: 0
+  });
+  items = itemsResponse.items || [];
+  
+  // Sort items client-side for room types by their sort field
+  if (slug === 'room-types') {
+    items.sort((a, b) => {
+      const sortA = a.fieldData?.sort ?? 999999;
+      const sortB = b.fieldData?.sort ?? 999999;
+      return sortA - sortB;
+    });
+  }
+  
+  console.log(`Fetched ${items.length} items`);
+} catch (err: any) {
+  console.error('Error fetching items:', err);
+  error = err.message || 'Failed to load items';
+}
+---
+
+<MainLayout pageClass={pageClass}>
+  <div class="min-h-screen bg-background">
+    <!-- Header -->
+    <header class="border-b border-border bg-card">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div class="mb-4">
+          <a 
+            href={`${baseUrl}/portal`}
+            class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 12L6 8l4-4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Portal
+          </a>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-8">
+          <div class="flex-1">
+            <h1 class="font-heading text-2xl sm:text-3xl text-foreground mb-1.5">
+              {collection.name}
+            </h1>
+            <p class="text-sm text-muted-foreground font-body">
+              <span id="item-count">{items.length}</span> {items.length === 1 ? 'item' : 'items'}
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <input 
+              type="text"
+              id="search-input"
+              placeholder="Search..."
+              class="px-4 py-2.5 text-sm font-body border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] flex-1 sm:w-64"
+            />
+            <a 
+              href={`${baseUrl}/portal/${slug}/new`}
+              class="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 text-sm font-button hover:bg-primary/90 transition-colors min-h-[44px] w-full sm:w-auto"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 3v10M3 8h10" stroke-linecap="round"/>
+              </svg>
+              New {collection.singularName}
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      
+      {slug === 'room-types' && (
+        <div class="mb-8">
+          <SyncRoomPhotos client:only="react" />
+        </div>
+      )}
+      
+      {error ? (
+        <div class="border border-destructive bg-destructive/10 px-4 py-3 mb-6">
+          <p class="text-sm text-destructive font-body">
+            {error}
+          </p>
+        </div>
+      ) : null}
+      
+      {items.length === 0 && !error ? (
+        <div class="text-center py-20">
+          <p class="text-muted-foreground font-body text-sm mb-6">
+            No {collection.name.toLowerCase()} yet
+          </p>
+          <a 
+            href={`${baseUrl}/portal/${slug}/new`}
+            class="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 text-sm font-button hover:bg-primary/90 transition-colors min-h-[44px]"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3v10M3 8h10" stroke-linecap="round"/>
+            </svg>
+            Create First {collection.singularName}
+          </a>
+        </div>
+      ) : (
+        <div class="border border-border bg-card">
+          <!-- Table Header -->
+          <div class="border-b border-border px-6 py-3 bg-muted/30">
+            <div class="grid grid-cols-12 gap-6 text-xs font-body font-medium text-muted-foreground">
+              <div class="col-span-6">
+                <button 
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors sort-btn"
+                  data-sort="name"
+                >
+                  Name
+                  <svg class="sort-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 4v8M5 9l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="col-span-4">
+                <button 
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors sort-btn"
+                  data-sort="slug"
+                >
+                  Slug
+                  <svg class="sort-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 4v8M5 9l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="col-span-2">
+                <button 
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors sort-btn"
+                  data-sort="status"
+                >
+                  Status
+                  <svg class="sort-icon" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 4v8M5 9l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Table Body -->
+          <div id="items-list" class="divide-y divide-border">
+            {items.map((item: any) => {
+              const isActive = item.fieldData.active !== false && item.fieldData.archived !== true;
+              
+              return (
+                <a 
+                  href={`${baseUrl}/portal/${slug}/${item.id}`}
+                  class="item-row block px-6 py-4 hover:bg-muted/50 transition-colors group"
+                  data-name={item.fieldData.name?.toLowerCase() || ''}
+                  data-slug={item.fieldData.slug?.toLowerCase() || ''}
+                  data-status={isActive ? 'active' : 'inactive'}
+                  data-search-text={JSON.stringify(item.fieldData).toLowerCase()}
+                >
+                  <div class="grid grid-cols-12 gap-6 items-center">
+                    <div class="col-span-6">
+                      <div class="font-body text-sm text-foreground group-hover:text-primary transition-colors">
+                        {item.fieldData.name}
+                      </div>
+                    </div>
+                    <div class="col-span-4">
+                      <div class="font-mono text-xs text-muted-foreground">
+                        {item.fieldData.slug}
+                      </div>
+                    </div>
+                    <div class="col-span-2">
+                      <span class={`inline-block px-2 py-0.5 pt-[2px] text-xs font-button font-bold uppercase tracking-[1px] rounded-[15px] text-[var(--_apps---color-selection--paper)] ${
+                        isActive 
+                          ? 'bg-[var(--_apps---color-selection--lake-forest)]' 
+                          : 'bg-[var(--_apps---color-selection--bandana-red)]'
+                      }`}>
+                        {isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+    </main>
+  </div>
+</MainLayout>
+
+<style>
+  .portal-collection h1 {
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  
+  .sort-btn {
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .sort-btn .sort-icon {
+    opacity: 0.4;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  
+  .sort-btn:hover .sort-icon {
+    opacity: 0.7;
+  }
+  
+  .sort-btn.asc .sort-icon {
+    opacity: 1;
+    transform: rotate(180deg);
+  }
+  
+  .sort-btn.desc .sort-icon {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  // Search functionality
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const itemsList = document.getElementById('items-list');
+  const itemCount = document.getElementById('item-count');
+  
+  if (searchInput && itemsList) {
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value.toLowerCase().trim();
+      const rows = itemsList.querySelectorAll('.item-row');
+      let visibleCount = 0;
+      
+      rows.forEach((row) => {
+        const searchText = row.getAttribute('data-search-text') || '';
+        if (searchText.includes(searchTerm)) {
+          (row as HTMLElement).style.display = 'block';
+          visibleCount++;
+        } else {
+          (row as HTMLElement).style.display = 'none';
+        }
+      });
+      
+      if (itemCount) {
+        itemCount.textContent = visibleCount.toString();
+      }
+    });
+  }
+  
+  // Sorting functionality
+  let currentSort: { field: string; direction: 'asc' | 'desc' } | null = null;
+  
+  const sortButtons = document.querySelectorAll('.sort-btn');
+  
+  sortButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const field = btn.getAttribute('data-sort');
+      if (!field) return;
+      
+      // Toggle direction
+      if (currentSort?.field === field) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort = { field, direction: 'asc' };
+      }
+      
+      // Update button states
+      sortButtons.forEach((b) => {
+        b.classList.remove('asc', 'desc');
+      });
+      btn.classList.add(currentSort.direction);
+      
+      // Sort items
+      const itemsList = document.getElementById('items-list');
+      if (!itemsList) return;
+      
+      const rows = Array.from(itemsList.querySelectorAll('.item-row')) as HTMLElement[];
+      
+      rows.sort((a, b) => {
+        let aVal = a.getAttribute(`data-${field}`) || '';
+        let bVal = b.getAttribute(`data-${field}`) || '';
+        
+        const comparison = aVal.localeCompare(bVal);
+        return currentSort!.direction === 'asc' ? comparison : -comparison;
+      });
+      
+      // Re-append in sorted order
+      rows.forEach((row) => {
+        itemsList.appendChild(row);
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+

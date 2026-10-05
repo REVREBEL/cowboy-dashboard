@@ -1,0 +1,578 @@
+@scope (.wf-devlink-41081ff4c8c02853e6f6cc57688220d2) {
+  body {
+    background-color: var(--color-schema--background);
+  }
+  h1 {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    font-family: var(--_typography---font-family--headline);
+    font-size: 3.5rem;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  h2 {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    font-family: var(--_typography---font-family--headline);
+    font-size: 3rem;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  h3 {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    font-family: var(--_typography---font-family--headline);
+    font-size: 2.5rem;
+    line-height: 1.2;
+    font-weight: 700;
+  }
+  h4 {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    font-family: var(--_typography---font-family--headline);
+    font-size: 2rem;
+    line-height: 1.3;
+    font-weight: 700;
+  }
+  h5 {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    font-family: var(--_typography---font-family--headline);
+    font-size: 1.5rem;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+  h6 {
+    margin-top: 0rem;
+    margin-bottom: 0rem;
+    font-family: var(--_typography---font-family--headline);
+    font-size: 1.25rem;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+  p {
+    margin-bottom: 0px;
+  }
+  a {
+    text-decoration-style: solid;
+  }
+  ul {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 1.25rem;
+  }
+  ol {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+  li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    padding-left: 0.5rem;
+  }
+  img {
+    object-fit: cover;
+  }
+  label {
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+  }
+  blockquote {
+    margin-bottom: 0rem;
+    padding: 0.75rem 1.25rem;
+    border-left: 0.1875rem solid var(--color-schema--text);
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+  figure {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+  }
+  figcaption {
+    margin-top: 0.25rem;
+    text-align: center;
+  }
+  #w-node-d6805a84-9260-b913-e26e-66aa150b425b-150b425b {
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-_8871d5da-1882-509e-61e3-7ff5f5f5e131-f5f5e130 {
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-a510e5cd-bf6c-e8d2-a50b-47a53800d2ec-3800d2cc {
+    grid-column-end: 2;
+    grid-column-start: 1;
+    grid-row-end: 2;
+    grid-row-start: 1;
+  }
+  #w-node-a510e5cd-bf6c-e8d2-a50b-47a53800d2f3-3800d2cc {
+    grid-column-end: 2;
+    grid-column-start: 1;
+    grid-row-end: 3;
+    grid-row-start: 2;
+    justify-self: end;
+  }
+  #w-node-a510e5cd-bf6c-e8d2-a50b-47a53800d2f5-3800d2cc {
+    grid-column-end: 2;
+    grid-column-start: 1;
+    grid-row-end: 3;
+    grid-row-start: 2;
+    justify-self: end;
+  }
+  #w-node-a510e5cd-bf6c-e8d2-a50b-47a53800d2f7-3800d2cc {
+    justify-self: start;
+    grid-column-end: 2;
+    grid-column-start: 1;
+    grid-row-end: 3;
+    grid-row-start: 2;
+  }
+  #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb5-185a2ead {
+    align-self: end;
+    justify-self: stretch;
+  }
+  #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb8-185a2ead {
+    align-self: center;
+    justify-self: center;
+  }
+  #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eba-185a2ead {
+    align-self: center;
+    justify-self: center;
+  }
+  #w-node-e9cadcf0-5eba-b562-dcb3-306477fa7369-185a2ead {
+    align-self: center;
+    justify-self: center;
+  }
+  #w-node-b464e872-1b1d-071d-ebe2-1308cd0c9882-185a2ead {
+    align-self: center;
+  }
+  #w-node-cf8200d4-3380-5c93-c6b3-5445eaade504-185a2ead {
+    grid-column-start: span 2;
+    grid-column-end: span 2;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77a83-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77a8a-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77a91-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77a98-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77aaa-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77ab1-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77ab9-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5e632ff9-e671-33b5-0e34-46a64de77ac0-61c2ecf9 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_554386da-1a3a-53e3-9dec-f1d9dec60083-6667bdae {
+    justify-self: stretch;
+    align-self: stretch;
+  }
+  #w-node-_143afb35-be9e-0bb2-4bf5-1d56d5a6620d-d5a6620d {
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-ffaa5434-2adc-a83a-db14-647001a4fbc5-c9d2fd27 {
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-f299aba4-d676-02a8-2e6d-eb6ce2fc1cd9-c9d2fd27 {
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-_95615e2a-7ffb-2fa4-01f4-55d178c7d764-c9d2fd27 {
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-_0ddfc3f4-b5da-98cf-aaca-0653ff18cf3d-c9d2fd27 {
+    justify-self: stretch;
+    align-self: stretch;
+  }
+  #w-node-_27739fb6-0dc6-4327-2e5e-88a84d5c817b-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_5300ac81-0755-7499-246a-90f15eea2135-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_4b2e1339-3300-4d53-6d8b-8b1139dfdec8-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_6c4a27ac-efcb-228f-b8be-8c76884a8dfe-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_40be0f88-e0ea-89fa-4f8b-7e2bcade9fdc-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-d20bb846-5abe-de5d-f184-4544aa0b4e1f-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-ab5596fd-f85c-7671-9360-5c5209f238ef-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_51492ab0-c886-98a8-95f7-d26d92522354-f2bd6280 {
+    grid-column-start: span 1;
+    grid-column-end: span 1;
+    grid-row-start: span 1;
+    grid-row-end: span 1;
+  }
+  #w-node-_80b8a614-c127-5cbf-c0a6-30b268acdd91-f2bd6280 {
+    align-self: stretch;
+  }
+  #w-node-_51d61da1-d649-17cc-bd9f-29e71bcfb48e-1bcfb48c {
+    align-self: center;
+    justify-self: center;
+  }
+  #w-node-_144d50ac-297a-7e65-2f16-fb477d455ac9-1bcfb48c:where(
+      .w-variant-b89d8f3c-d4b2-4557-a8bf-e2e85ac8a8b9
+    ) {
+    order: -9999;
+  }
+  #w-node-_0a4c77f8-0905-6ee0-fde8-d3465c1da844-57fc7748 {
+    justify-self: start;
+    align-self: start;
+  }
+  #w-node-_0747c513-0a30-cfdf-d190-e15c0a31dd74-57fc7748 {
+    align-self: start;
+    justify-self: stretch;
+  }
+  #w-node-_2b1668f8-f926-b317-85ab-6aa31f8a6698-1f8a6690 {
+    align-self: stretch;
+    justify-self: stretch;
+  }
+  #w-node-f45dc470-c606-8314-fd3d-eda005f3b64e-b6ae27ca {
+    align-self: center;
+  }
+  #w-node-fea7a29b-2805-e0a0-c24f-f72ddc3b1ad4-7c57ac56 {
+    align-self: end;
+  }
+  @media screen and (min-width: 1280px) {
+    body {
+      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1rem;
+      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+        sans-serif;
+      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
+      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
+      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
+    }
+  }
+  @media screen and (min-width: 1440px) {
+    body {
+      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1rem;
+      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+        sans-serif;
+      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+    }
+  }
+  @media screen and (min-width: 1920px) {
+    body {
+      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
+      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
+      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
+      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1rem;
+      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+        sans-serif;
+      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+    }
+  }
+  @media screen and (max-width: 991px) {
+    body {
+      --_cards---card-padding--card-padding\<deleted\|variable-5624329e-1907-c0c8-6132-50175e4224d4\>: var(
+        --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>
+      );
+      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
+      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 2rem;
+      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
+      --_buttons---button-globals--btn-font\<deleted\|variable-c7a12a17-04eb-683b-8baf-650958a993e1\>: "Inter Tight",
+        sans-serif;
+      --_buttons---button-globals--btn-text-size\<deleted\|variable-145ac7bf-04f7-f364-8607-e2ff5f891bc6\>: 1.25rem;
+      --_buttons---button-globals--btn-line-height\<deleted\|variable-1989b671-5b11-ae37-183a-c9022089a37b\>: 1;
+      --_buttons---button-globals--btn-weight\<deleted\|variable-2fe3186b-8c3a-9b69-e7ef-5660f6c158f3\>: var(
+        --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>
+      );
+      --_buttons---button-globals--btn-padding-vertical\<deleted\|variable-8ee1dfa0-bacd-5d7c-462d-520d247a0160\>: 1.75em;
+      --_buttons---button-globals--btn-padding-horizontal\<deleted\|variable-9cdd9272-ccb1-c771-244e-16e09832f15e\>: 2.65em;
+      --_buttons---button-globals--btn-border-width\<deleted\|variable-937974e0-f5df-acc4-79ad-ec46c8e1b82d\>: 2px;
+      --_buttons---button-primary--btn-primary-border\<deleted\|variable-9b6c0aa7-ffb0-7e12-72fa-2509c8845629\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-bg\<deleted\|variable-25fa0709-82be-1b51-d1c4-96903cffc4fa\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-inner-shadow-hover\<deleted\|variable-9cf468bd-e5ff-2d13-58d5-fff84d4c4334\>: color-mix(
+        in srgb,
+        white 20%,
+        currentColor
+      );
+      --_buttons---button-primary--btn-primary-border-shadow-hover\<deleted\|variable-6a7b04ad-f871-72d3-f4a3-4d7ed1e185a4\>: color-mix(
+        in srgb,
+        black 50%,
+        currentColor
+      );
+      --_buttons---button-primary--btn-primary-text-color\<deleted\|variable-c3ee55d3-7011-8595-7891-232d069255fa\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_buttons---button-primary--btn-primary-border-hover\<deleted\|variable-55dd881b-8da2-47d6-f22e-f7418d27f521\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
+      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 0.9rem;
+      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+        sans-serif;
+      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+    }
+    h1 {
+      font-size: 3.25rem;
+    }
+    h2 {
+      font-size: 2.75rem;
+    }
+    h3 {
+      font-size: 2.25rem;
+    }
+    h4 {
+      font-size: 1.75rem;
+    }
+    #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb2-185a2ead {
+      align-self: center;
+      justify-self: start;
+      grid-row-start: span 1;
+      grid-row-end: span 1;
+      grid-column-start: span 3;
+      grid-column-end: span 3;
+    }
+    #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb5-185a2ead {
+      align-self: center;
+      justify-self: end;
+      grid-row-start: span 1;
+      grid-row-end: span 1;
+      grid-column-start: span 3;
+      grid-column-end: span 3;
+    }
+  }
+  @media screen and (max-width: 767px) {
+    body {
+      --_cards---card-padding--card-padding\<deleted\|variable-5624329e-1907-c0c8-6132-50175e4224d4\>: var(
+        --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>
+      );
+      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1.1rem;
+      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+        sans-serif;
+      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
+      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
+      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
+      --_buttons---button-globals--btn-font\<deleted\|variable-c7a12a17-04eb-683b-8baf-650958a993e1\>: "Inter Tight",
+        sans-serif;
+      --_buttons---button-globals--btn-text-size\<deleted\|variable-145ac7bf-04f7-f364-8607-e2ff5f891bc6\>: 1.4rem;
+      --_buttons---button-globals--btn-line-height\<deleted\|variable-1989b671-5b11-ae37-183a-c9022089a37b\>: 1;
+      --_buttons---button-globals--btn-weight\<deleted\|variable-2fe3186b-8c3a-9b69-e7ef-5660f6c158f3\>: var(
+        --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>
+      );
+      --_buttons---button-globals--btn-padding-vertical\<deleted\|variable-8ee1dfa0-bacd-5d7c-462d-520d247a0160\>: 1.5em;
+      --_buttons---button-globals--btn-padding-horizontal\<deleted\|variable-9cdd9272-ccb1-c771-244e-16e09832f15e\>: 2.65em;
+      --_buttons---button-globals--btn-border-width\<deleted\|variable-937974e0-f5df-acc4-79ad-ec46c8e1b82d\>: 2px;
+      --_buttons---button-primary--btn-primary-border\<deleted\|variable-9b6c0aa7-ffb0-7e12-72fa-2509c8845629\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-bg\<deleted\|variable-25fa0709-82be-1b51-d1c4-96903cffc4fa\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-inner-shadow-hover\<deleted\|variable-9cf468bd-e5ff-2d13-58d5-fff84d4c4334\>: color-mix(
+        in srgb,
+        white 20%,
+        currentColor
+      );
+      --_buttons---button-primary--btn-primary-border-shadow-hover\<deleted\|variable-6a7b04ad-f871-72d3-f4a3-4d7ed1e185a4\>: color-mix(
+        in srgb,
+        black 50%,
+        currentColor
+      );
+      --_buttons---button-primary--btn-primary-text-color\<deleted\|variable-c3ee55d3-7011-8595-7891-232d069255fa\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_buttons---button-primary--btn-primary-border-hover\<deleted\|variable-55dd881b-8da2-47d6-f22e-f7418d27f521\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    h2 {
+      font-size: 2.25rem;
+    }
+    h3 {
+      font-size: 2rem;
+    }
+    h4 {
+      font-size: 1.5rem;
+      line-height: 1.4;
+    }
+    h5 {
+      font-size: 1.25rem;
+    }
+    h6 {
+      font-size: 1.125rem;
+    }
+    #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb2-185a2ead {
+      justify-self: center;
+    }
+    #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb5-185a2ead {
+      justify-self: stretch;
+    }
+  }
+  @media screen and (max-width: 479px) {
+    body {
+      --_cards---card-padding--card-padding\<deleted\|variable-5624329e-1907-c0c8-6132-50175e4224d4\>: var(
+        --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>
+      );
+      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1.5rem;
+      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+        sans-serif;
+      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
+      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
+      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
+      --_buttons---button-globals--btn-font\<deleted\|variable-c7a12a17-04eb-683b-8baf-650958a993e1\>: "Inter Tight",
+        sans-serif;
+      --_buttons---button-globals--btn-text-size\<deleted\|variable-145ac7bf-04f7-f364-8607-e2ff5f891bc6\>: 1.4rem;
+      --_buttons---button-globals--btn-line-height\<deleted\|variable-1989b671-5b11-ae37-183a-c9022089a37b\>: 1;
+      --_buttons---button-globals--btn-weight\<deleted\|variable-2fe3186b-8c3a-9b69-e7ef-5660f6c158f3\>: var(
+        --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>
+      );
+      --_buttons---button-globals--btn-padding-vertical\<deleted\|variable-8ee1dfa0-bacd-5d7c-462d-520d247a0160\>: 2.05em;
+      --_buttons---button-globals--btn-padding-horizontal\<deleted\|variable-9cdd9272-ccb1-c771-244e-16e09832f15e\>: 3.25em;
+      --_buttons---button-globals--btn-border-width\<deleted\|variable-937974e0-f5df-acc4-79ad-ec46c8e1b82d\>: 2px;
+      --_buttons---button-primary--btn-primary-border\<deleted\|variable-9b6c0aa7-ffb0-7e12-72fa-2509c8845629\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-bg\<deleted\|variable-25fa0709-82be-1b51-d1c4-96903cffc4fa\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-inner-shadow-hover\<deleted\|variable-9cf468bd-e5ff-2d13-58d5-fff84d4c4334\>: color-mix(
+        in srgb,
+        white 20%,
+        currentColor
+      );
+      --_buttons---button-primary--btn-primary-border-shadow-hover\<deleted\|variable-6a7b04ad-f871-72d3-f4a3-4d7ed1e185a4\>: color-mix(
+        in srgb,
+        black 50%,
+        currentColor
+      );
+      --_buttons---button-primary--btn-primary-text-color\<deleted\|variable-c3ee55d3-7011-8595-7891-232d069255fa\>: var(
+        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+      );
+      --_buttons---button-primary--btn-primary-border-hover\<deleted\|variable-55dd881b-8da2-47d6-f22e-f7418d27f521\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
+        --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+      );
+      --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    #w-node-_7657a5aa-17ea-f4d6-5492-8f35185a2eb2-185a2ead {
+      justify-self: center;
+    }
+    #w-node-e9cadcf0-5eba-b562-dcb3-306477fa7369-185a2ead {
+      justify-self: center;
+    }
+  }
+}

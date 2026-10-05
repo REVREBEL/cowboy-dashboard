@@ -1,0 +1,1655 @@
+:root {
+  --color-schema--background: var(--paper--normal);
+  --_typography---font-family--headline: "Desert Rain", "Trebuchet MS",
+    sans-serif;
+  --color-schema--text: var(--shade--neutral-darkest);
+  --cowboy-umber--normal: #4e332d;
+  --_typography---text-sizes--text-regular\<deleted\|variable-58ca70c0-1b1f-147d-c1c6-4f9bdb0fb35b\>: 16px;
+  --_typography---text-size--base: clamp(
+    1.05 * 1rem,
+    (
+      (
+          1.05 -
+            (
+              (1.15 - 1.05) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.15 - 1.05) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.15 * 1rem
+  );
+  --_ui-styles---radius--medium\<deleted\|relume-variable-radius-medium\>: 0px;
+  --opacity--neutral-darkest-40: #01020166;
+  --_size---image-raduis: 50px;
+  --_primitives---color--white\<deleted\|variable-b9f00624-62fc-4fe0-1d18-3627e807d5d0\>: #ffffffff;
+  --_typography---text-sizes--heading-4\<deleted\|variable-6183adf0-c77b-fc3a-1bcb-9130d44c16cc\>: 32px;
+  --_size---page-padding--global: 64px;
+  --_primitives---color--neutral-darkest\<deleted\|variable-db8cf495-8907-15c2-2110-22bce12905f9\>: #010201;
+  --alpine-linen--normal: #ebe8e0;
+  --_typography---text-sizes--text-medium\<deleted\|variable-b7cf9370-b979-4479-1005-7cce5d3f4533\>: 18px;
+  --_size---max-width--max-width-xsmall\<deleted\|variable-d664bcbf-31d3-080e-d072-85f66b3b37d9\>: 400px;
+  --_size---max-width--max-width-xlarge\<deleted\|variable-a4a9e3f8-dfbe-3d97-2fb6-a1fcaca95584\>: 1024px;
+  --opacity--transparent: #ffffff00;
+  --opacity--neutral-darkest-60: #01020199;
+  --_size---padding--md: 4rem;
+  --_typography---text-sizes--text-small\<deleted\|variable-3339b5bd-b528-f064-9df8-95bde85898d3\>: 14px;
+  --_typography---text-sizes--text-tiny\<deleted\|variable-4cee8da5-d9a4-cc1a-4335-62be8e98ceb4\>: 12px;
+  --_size---container--md: 1280px;
+  --color-schema--border: var(--shade--neutral-darkest);
+  --_ui-styles---radius--large\<deleted\|relume-variable-radius-large\>: 0px;
+  --color-schema--foreground: var(--shade--white);
+  --_typography---responsive-headline--xxxs: clamp(
+    1.847rem,
+    calc(1.802rem + 0.226cqi),
+    2.006rem
+  );
+  --_typography---text-sizes--heading-5\<deleted\|variable-379243fe-05b1-3bd2-338f-7ba5811b6e00\>: 24px;
+  --_typography---text-sizes--heading-2\<deleted\|variable-56d2aee4-3dad-0aea-ce1c-ae8641a4ab87\>: 48px;
+  --_typography---text-sizes--heading-3\<deleted\|variable-52262e82-a5f7-70c9-803c-e3f547554e89\>: 40px;
+  --_size---padding--lg: 6rem;
+  --_size---max-width--max-width-large\<deleted\|variable-476cc3cd-a969-cbb9-6613-590e5a188ff8\>: 768px;
+  --_size---gap--small\<deleted\|variable-5530301a-1e32-150e-3064-bdf35c2de8d3\>: 2rem;
+  --_primitives---color--neutral-dark\<deleted\|variable-5ace33f7-4fba-33d3-2971-a799a48a8573\>: #4d4d4d;
+  --_typography---text-sizes--heading-1\<deleted\|variable-95497bb1-df5c-d16e-6e23-d11885c01187\>: 56px;
+  --shade--white: #fff;
+  --_size---max-width--max-width-medium\<deleted\|variable-22191aee-e8ee-e1a7-0f22-4265ad4024dc\>: 560px;
+  --_typography---responsive-headline--md: clamp(
+    4.341rem,
+    calc(4.235rem + 0.532cqi),
+    4.713rem
+  );
+  --image-wrapper_small: 0px;
+  --_size---image--radius: 0.25rem;
+  --_typography---text-size--md: clamp(
+    1.15 * 1rem,
+    (
+      (
+          1.15 -
+            (
+              (1.25 - 1.15) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.25 - 1.15) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.25 * 1rem
+  );
+  --_size---gap--base: 4rem;
+  --_primitives---color--neutral-darkest\<deleted\|variable-2f06cc18-0ddc-3086-2649-882242cee8c1\>: #010201ff;
+  --paper--normal: #faf9f9;
+  --_typography---font-family--body: Uchen, sans-serif;
+  --_typography---responsive-text--base: clamp(
+    1.141rem,
+    calc(1.113rem + 0.14cqi),
+    1.239rem
+  );
+  --_typography---text-size--sm: clamp(
+    0.95 * 1rem,
+    (
+      (
+          0.95 -
+            (
+              (1.05 - 0.95) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.05 - 0.95) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.05 * 1rem
+  );
+  --_typography---font-family--subheadline: Brothers, Georgia, sans-serif;
+  --_typography---font-family--eyebrow: Brothers, Georgia, sans-serif;
+  --_size---gap--xx-small\<deleted\|variable-b11a1052-d149-6830-4282-bb9032a6f368\>: 0.5rem;
+  --_size---gap--x-small\<deleted\|variable-9f705e1b-4738-61d6-042a-ded75bf15dbb\>: 1rem;
+  --_typography---font-family--button: Brothers, Georgia, sans-serif;
+  --lake-forest--normal: #0e301a;
+  --_color-schemes-2---color-scheme-1--background\<deleted\|variable-94761d46-6e04-d74b-f8d7-2fe3ecbb3b52\>: #ffffffff;
+  --_typography---font-family--labels: Brothers, Georgia, sans-serif;
+  --_typography---responsive-text--md: clamp(
+    1.277rem,
+    calc(1.246rem + 0.156cqi),
+    1.387rem
+  );
+  --alpine-linen--normal\<deleted\|variable-aa8467a7-6f4b-21ed-4b41-10400c5dc459\>: var(
+    --alpine-linen--500\<deleted\|variable-b517428b-ec44-d59a-619d-51b62bf1f9d5\>
+  );
+  --relume-library-lite--rl-black: black;
+  --_color---cowboy-umber--normal\<deleted\|variable-7f5613b5-fdfb-8107-aaa9-39f6ffc0b6b6\>: var(
+    --_color---cowboy-umber--500\<deleted\|variable-9bbc5a8c-37ce-63ad-369e-022e8cd48dca\>
+  );
+  --_mode---semantic-background\<deleted\|variable-72540b65-cd35-7ab6-7f87-f56b00782742\>: #ffffffff;
+  --_tw--font---tracking--normal\<deleted\|variable-f2211390-c6c7-186a-51ed-a97f7092a398\>: var(
+    --_tokens---0\<deleted\|variable-14feb387-91a1-2e9e-b396-e24e30919d81\>
+  );
+  --_typography-2---font-family--body\<deleted\|variable-44d88440-71f6-78cf-7880-79fff187de9b\>: Uchen,
+    sans-serif;
+  --whiskey-sour--normal: #ddc5a4;
+  --cowboy-umber--normal\<deleted\|variable-352a2f8c-0e13-083d-e407-1c4afe85924a\>: var(
+    --cowboy-umber--500\<deleted\|variable-676eae2c-45e5-2d68-e0a6-66dba148665b\>
+  );
+  --_base-collection-2---font--font-weight-regular\<deleted\|variable-13e5525b-ace8-abd2-a6e2-a553274f4bcc\>: "Nohemi Regular",
+    sans-serif;
+  --_base-collection-2---color--white\<deleted\|variable-0b40faf9-43ef-4588-0c61-0f25f3fccdc1\>: white;
+  --_base-collection-2---font--font-weight-light\<deleted\|variable-f795927e-9ddf-89df-0ad5-5170d2ad0420\>: "Nohemi Light",
+    sans-serif;
+  --_base-collection-2---font-size-18\<deleted\|variable-6eab378e-53f7-72ed-7017-b8a241d6299f\>: 1.125em;
+  --_base-collection-2---color--main-blue\<deleted\|variable-21755c78-a8c7-84a2-7159-a912373be193\>: #b8cbd3;
+  --smoke--normal: #343833;
+  --_typography---responsive-headline--jumbo: clamp(
+    8.545rem,
+    calc(8.336rem + 1.046cqi),
+    9.277rem
+  );
+  --_base-collection-2---size-530\<deleted\|variable-58c03373-0c26-ded5-0535-2455869f0086\>: 33.125em;
+  --cowboy-umber--500\<deleted\|variable-676eae2c-45e5-2d68-e0a6-66dba148665b\>: #4e332d;
+  --_base-collection-2---spacing-16-2\<deleted\|variable-6d34b1d8-0eb7-5ba3-9567-6f0e2b77f8f3\>: 1em;
+  --_inputs---input-primary--input-primary-bg\<deleted\|variable-f0166224-8d24-2424-48c9-43f2549f4f93\>: var(
+    --_base-collection-2---core-colors--secondary\<deleted\|variable-fe60d3b4-11da-e9d0-3b89-609d263affec\>
+  );
+  --_typography---font-family--logo: "Desert Rain", "Trebuchet MS", sans-serif;
+  --_base-collection---font--body-font\<deleted\|variable-18bb6b8c-3f5e-69bb-d96e-c922890f3158\>: "Inter Tight",
+    sans-serif;
+  --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 0.9rem;
+  --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
+  --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
+  --_buttons---button-globals--btn-font\<deleted\|variable-c7a12a17-04eb-683b-8baf-650958a993e1\>: "Inter Tight",
+    sans-serif;
+  --_buttons---button-globals--btn-text-size\<deleted\|variable-145ac7bf-04f7-f364-8607-e2ff5f891bc6\>: 1rem;
+  --_buttons---button-globals--btn-line-height\<deleted\|variable-1989b671-5b11-ae37-183a-c9022089a37b\>: 1;
+  --_buttons---button-globals--btn-weight\<deleted\|variable-2fe3186b-8c3a-9b69-e7ef-5660f6c158f3\>: var(
+    --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>
+  );
+  --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
+    sans-serif;
+  --_buttons---button-globals--btn-padding-vertical\<deleted\|variable-8ee1dfa0-bacd-5d7c-462d-520d247a0160\>: 1.5em;
+  --_buttons---button-globals--btn-padding-horizontal\<deleted\|variable-9cdd9272-ccb1-c771-244e-16e09832f15e\>: 2em;
+  --_buttons---button-globals--btn-border-width\<deleted\|variable-937974e0-f5df-acc4-79ad-ec46c8e1b82d\>: 2px;
+  --_buttons---button-primary--btn-primary-border\<deleted\|variable-9b6c0aa7-ffb0-7e12-72fa-2509c8845629\>: var(
+    --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+  );
+  --_buttons---button-primary--btn-primary-bg\<deleted\|variable-25fa0709-82be-1b51-d1c4-96903cffc4fa\>: var(
+    --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+  );
+  --_buttons---button-primary--btn-primary-inner-shadow-hover\<deleted\|variable-9cf468bd-e5ff-2d13-58d5-fff84d4c4334\>: color-mix(
+    in srgb,
+    white 20%,
+    currentColor
+  );
+  --_buttons---button-primary--btn-primary-border-shadow-hover\<deleted\|variable-6a7b04ad-f871-72d3-f4a3-4d7ed1e185a4\>: color-mix(
+    in srgb,
+    black 50%,
+    currentColor
+  );
+  --_buttons---button-primary--btn-primary-text-color\<deleted\|variable-c3ee55d3-7011-8595-7891-232d069255fa\>: var(
+    --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+  );
+  --_buttons---button-primary--btn-primary-border-hover\<deleted\|variable-55dd881b-8da2-47d6-f22e-f7418d27f521\>: var(
+    --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+  );
+  --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
+    --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+  );
+  --_cards---card-padding--card-padding\<deleted\|variable-5624329e-1907-c0c8-6132-50175e4224d4\>: var(
+    --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>
+  );
+  --_colors---background-colors--bg-inverse\<deleted\|variable-9db71c16-70e3-0724-82c1-410a0728c450\>: var(
+    --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
+  );
+  --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
+    --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+  );
+  --_cards-2---card--card-radius\<deleted\|variable-ebc48e08-00d8-134f-4265-5b2aff2f3b4e\>: 1.5rem;
+  --mist--normal: #f2f2f2;
+  --_typography---responsive-headline--sm: clamp(
+    3.087rem,
+    calc(3.011rem + 0.378cqi),
+    3.351rem
+  );
+  --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
+  --lake-forest--fade: #566e5f;
+  --_apps---typography--button-font: Brothers, Georgia, sans-serif;
+  --_typography---text-size--xs: clamp(
+    0.85 * 1rem,
+    (
+      (
+          0.85 -
+            (
+              (0.95 - 0.85) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (0.95 - 0.85) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    0.95 * 1rem
+  );
+  --_base-collection---core-colors--tertiary\<deleted\|variable-c68d1dff-2e40-7758-bc00-cb2810cda892\>: #d9d9d9;
+  --_forms---input--input-border-radius\<deleted\|variable-72b20f85-7ccc-ee3e-04be-67a7075ab32c\>: 0.625rem;
+  --_forms---input-primary--input-primary-border-hover\<deleted\|variable-e9b9bbcf-d0a7-7421-1961-529a71d1a2ab\>: hsla(
+    0,
+    0%,
+    0%,
+    0.5
+  );
+  --_forms---input-primary--input-primary-bg-hover\<deleted\|variable-c4b8fc7b-d573-d2e0-d380-485c7b14cbfd\>: var(
+    --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
+  );
+  --_base-collection-2---size-320\<deleted\|variable-d9fe825f-3db1-50af-bac3-9575b5ad6f25\>: 20em;
+  --_base-collection-2---color--soft-blue\<deleted\|variable-c796367b-edd2-400a-c98b-e6d95df0d574\>: #dae9ef;
+  --_apps---typography--body-font: Uchen, sans-serif;
+  --relume-library-lite--rl-gray: #f4f4f4;
+  --relume-library-lite--rl-white: white;
+  --_shades---paper--100: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 65.61%,
+    white
+  );
+  --_apps---typography--heading-font: Desertrain, "Trebuchet MS", sans-serif;
+  --_shades---paper--200: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 72.9%,
+    white
+  );
+  --_size---page-padding--block: 3rem;
+  --_size---page-padding--inline: 4rem;
+  --_shades---paper--300: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 81%,
+    white
+  );
+  --_apps---typography--sans: "Bianco Sans", Impact, sans-serif;
+  --_apps---typography--serif: Uchen, sans-serif;
+  --_apps---typography--mono: Brothers, Georgia, sans-serif;
+  --_apps---typography--tracking-normal: 0.05em;
+  --_size---padding--xxl: 10rem;
+  --_size---padding--xl: 12rem;
+  --_apps---typography--tracking-tighter: 0em;
+  --_apps---typography--tracking-tight: 0.025em;
+  --_apps---typography--tracking-wide: 0.075em;
+  --_apps---typography--tracking-wider: 0.1em;
+  --_apps---typography--tracking-widest: 0.15em;
+  --_shades---paper--400: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 90%,
+    white
+  );
+  --_apps---sizes--radius: 50px;
+  --_apps---sizes--spacing: 0.25rem;
+  --_apps---sizes--radius-lg: var(--_apps---sizes--radius);
+  --_apps---sizes--radius-sm: 46px;
+  --_apps---sizes--radius-md: 48px;
+  --_apps---sizes--radius-xl: 54px;
+  --_shades---paper--500: var(--paper--normal);
+  --_size---padding--base: 3rem;
+  --_apps---colors--background: #faf9f9;
+  --_size---padding--sm: 2rem;
+  --_size---padding--xs: 1rem;
+  --_size---padding--xxs: 0.5rem;
+  --_shades---paper--600: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 90%,
+    black
+  );
+  --_size---container--max: 1279px;
+  --_apps---colors--foreground: #4e332d;
+  --_size---container--xl: 1600px;
+  --_size---container--lg: 1440px;
+  --_size---container--sm: 1200px;
+  --_size---container--xs: 1000px;
+  --_shades---paper--700: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 81%,
+    black
+  );
+  --_apps---colors--card: #ebe8e0;
+  --_shades---paper--800: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 72.9%,
+    black
+  );
+  --_apps---colors--card-foreground: #4e332d;
+  --_shades---paper--900: color-mix(
+    in srgb,
+    var(--_shades---paper--500) 65.61%,
+    black
+  );
+  --_apps---colors--popover: #faf9f9;
+  --_shades---teal--100: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 60%,
+    white 40%
+  );
+  --_apps---colors--popover-foreground: #4e332d;
+  --_shades---teal--200: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 70%,
+    white 30%
+  );
+  --_apps---colors--primary: #9a5636;
+  --_shades---teal--300: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 80%,
+    white 20%
+  );
+  --_apps---colors--primary-foreground: #faf9f9;
+  --_shades---teal--400: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 90%,
+    white 10%
+  );
+  --_apps---colors--secondary: #ddc5a4;
+  --_shades---teal--500: #000000;
+  --_apps---colors--secondary-foreground: #4e332d;
+  --_shades---teal--600: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 80%,
+    black 20%
+  );
+  --_apps---colors--muted: #ebe8e0;
+  --_shades---teal--700: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 80%,
+    black 20%
+  );
+  --_apps---colors--muted-foreground: #69253a;
+  --_shades---teal--800: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 70%,
+    black 30%
+  );
+  --_apps---colors--accent: #d65241;
+  --_shades---teal--900: color-mix(
+    in srgb,
+    var(--_shade---teal--500) 60%,
+    black 40%
+  );
+  --_apps---colors--accent-foreground: #faf9f9;
+  --_shades---cyan--100: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 60%,
+    white 40%
+  );
+  --_apps---colors--destructive: #69253a;
+  --_shades---cyan--200: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 70%,
+    white 30%
+  );
+  --_apps---colors--border: #ddc5a4;
+  --_shades---cyan--300: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 80%,
+    white 20%
+  );
+  --_apps---colors--input: #ebe8e0;
+  --_shades---cyan--400: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 90%,
+    white 10%
+  );
+  --_apps---colors--ring: #d65241;
+  --_shades---cyan--500: var(--alpine-linen--normal);
+  --_apps---charts--chart-1: #9a5636;
+  --_shades---cyan--600: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 80%,
+    black 20%
+  );
+  --_apps---charts--chart-2: #0e301a;
+  --_shades---cyan--700: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 80%,
+    black 20%
+  );
+  --_apps---charts--chart-3: #236b7d;
+  --_shades---cyan--800: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 70%,
+    black 30%
+  );
+  --_apps---charts--chart-4: #d65241;
+  --_shades---cyan--900: color-mix(
+    in srgb,
+    var(--_shade---cyan--500) 60%,
+    black 40%
+  );
+  --_apps---charts--chart-5: #f2aaa9;
+  --_shades---smoke--100: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 60%,
+    white 40%
+  );
+  --_apps---sidebar--sidebar: #faf9f9;
+  --_shades---smoke--200: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 70%,
+    white 30%
+  );
+  --_apps---sidebar--sidebar-foreground: #4e332d;
+  --_shades---smoke--300: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 80%,
+    white 20%
+  );
+  --_apps---sidebar--sidebar-primary: #9a5636;
+  --_shades---smoke--400: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 90%,
+    white 10%
+  );
+  --_apps---sidebar--sidebar-primary-foreground: #faf9f9;
+  --_shades---smoke--500: var(--smoke--normal);
+  --_apps---sidebar--sidebar-accent: #d65241;
+  --_shades---smoke--600: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 90%,
+    black 10%
+  );
+  --_apps---sidebar--sidebar-accent-foreground: #faf9f9;
+  --_shades---smoke--700: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 80%,
+    black 20%
+  );
+  --_apps---sidebar--sidebar-border: #ddc5a4;
+  --_shades---smoke--800: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 70%,
+    black 30%
+  );
+  --_apps---sidebar--sidebar-ring: #d65241;
+  --_shades---smoke--900: color-mix(
+    in srgb,
+    var(--_shades---smoke--500) 60%,
+    black 40%
+  );
+  --_apps---colors--background-dark: #4e332d;
+  --_shades---cowboy-umber--100: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 60%,
+    white 40%
+  );
+  --_apps---colors--foreground-dark: #faf9f9;
+  --_size---gap--xxl: 6rem;
+  --_size---gap--xl: 5rem;
+  --_size---gap--lg: 4rem;
+  --_size---gap--md: 3rem;
+  --_size---gap--sm: 2rem;
+  --_size---gap--xs: 1rem;
+  --_size---gap--xxs: 0.5rem;
+  --_shades---cowboy-umber--200: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 70%,
+    white 30%
+  );
+  --_size---max-size--xs: 60%;
+  --_apps---colors--card-dark: #0e301a;
+  --_shades---cowboy-umber--300: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 80%,
+    white 20%
+  );
+  --_size---width--xxl: 70rem;
+  --_typography---font-family--emphasis: "Fira Code", sans-serif;
+  --_apps---colors--card-foreground-dark: #ebe8e0;
+  --_shades---cowboy-umber--400: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 90%,
+    white 10%
+  );
+  --_size---width--xl: 60rem;
+  --_typography---font-family--code: "Fira Code", sans-serif;
+  --color-schema--accent: var(--shade--neutral-darkest);
+  --_apps---colors--popover-dark: #4e332d;
+  --paper--fade: color-mix(in srgb, var(--paper--normal) 70%, white 30%);
+  --paper--inverse: var(--smoke--normal);
+  --paper--inverse-fade: color-mix(
+    in srgb,
+    var(--paper--inverse) 70%,
+    white 30%
+  );
+  --mist--fade: color-mix(in srgb, var(--mist--normal) 70%, white 30%);
+  --mist--inverse: var(--oxblood--normal);
+  --mist--inverse-fade: color-mix(in srgb, var(--mist--inverse) 70%, white 30%);
+  --alpine-linen--fade: color-mix(in srgb, var(--paper--normal) 70%, white 30%);
+  --alpine-linen--inverse: var(--cowboy-umber--normal);
+  --alpine-linen--inverse-fade: color-mix(
+    in srgb,
+    var(--alpine-linen--inverse) 70%,
+    white 30%
+  );
+  --smoke--fade: color-mix(in srgb, var(--smoke--normal) 70%, white 30%);
+  --smoke--inverse: var(--paper--normal);
+  --smoke--inverse-fade: color-mix(
+    in srgb,
+    var(--smoke--inverse) 70%,
+    white 30%
+  );
+  --cowboy-umber--fade: color-mix(
+    in srgb,
+    var(--cowboy-umber--normal) 70%,
+    white 30%
+  );
+  --cowboy-umber--inverse: var(--alpine-linen--normal);
+  --cowboy-umber--inverse-fade: color-mix(
+    in srgb,
+    var(--cowboy-umber--inverse) 70%,
+    white 30%
+  );
+  --copper--normal: #9a5636;
+  --copper--fade: color-mix(in srgb, var(--copper--normal) 70%, white 30%);
+  --copper--inverse: color-mix(
+    in srgb,
+    var(--alpine-linen--normal) 70%,
+    white 30%
+  );
+  --copper--inverse-fade: color-mix(
+    in srgb,
+    var(--copper--inverse) 70%,
+    white 30%
+  );
+  --oxblood--normal: #69253a;
+  --oxblood--fade: color-mix(in srgb, var(--oxblood--normal) 70%, white 30%);
+  --oxblood--inverse: var(--mist--normal);
+  --oxblood--inverse-fade: color-mix(
+    in srgb,
+    var(--oxblood--inverse) 70%,
+    white 30%
+  );
+  --lake-forest--inverse: white;
+  --lake-forest--inverse-fade: white;
+  --bandana-red--normal: #d65241;
+  --bandana-red--fade: color-mix(
+    in srgb,
+    var(--bandana-red--normal) 70%,
+    white 30%
+  );
+  --bandana-red--inverse: white;
+  --bandana-red--inverse-fade: color-mix(
+    in srgb,
+    var(--paper--normal) 70%,
+    white 30%
+  );
+  --lodge-yellow--normal: #fddc4e;
+  --lodge-yellow--fade: color-mix(
+    in srgb,
+    var(--lodge-yellow--normal) 70%,
+    white 30%
+  );
+  --oxidized-teal--normal: #236b7d;
+  --oxidized-teal--fade: color-mix(
+    in srgb,
+    var(--oxidized-teal--normal) 70%,
+    white 30%
+  );
+  --nude-ember--normal: #f2aaa9;
+  --nude-ember--inverse: color-mix(
+    in srgb,
+    var(--nude-ember--normal) 70%,
+    white 30%
+  );
+  --whiskey-sour--fade: color-mix(
+    in srgb,
+    var(--whiskey-sour--normal) 70%,
+    white 30%
+  );
+  --ash--normal: #ccc7bb;
+  --ash--fade: color-mix(in srgb, var(--ash--normal) 70%, white 30%);
+  --_shades---cowboy-umber--500: var(--cowboy-umber--normal);
+  --_size---width--lg: 50rem;
+  --_typography---font-family--emoji: "Noto Emoji";
+  --_apps---colors--popover-foreground-dark: #faf9f9;
+  --_shades---cowboy-umber--600: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 90%,
+    black 10%
+  );
+  --_size---width--base: 40rem;
+  --_typography---font-family--blockquote: "Logic Monoscript";
+  --shade--neutral-lightest: #eee;
+  --_apps---colors--primary-dark: #d65241;
+  --_shades---cowboy-umber--700: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 80%,
+    black 20%
+  );
+  --_size---width--sm: 35rem;
+  --shade--neutral-lighter: #ccc;
+  --_apps---colors--primary-foreground-dark: #faf9f9;
+  --_shades---cowboy-umber--800: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 70%,
+    black 30%
+  );
+  --_size---width--xs: 25rem;
+  --shade--neutral-light: #aaa;
+  --_apps---colors--secondary-dark: #9a5636;
+  --_shades---cowboy-umber--900: color-mix(
+    in srgb,
+    var(--_shades---cowboy-umber--500) 60%,
+    black 40%
+  );
+  --_size---width--xxs: 12rem;
+  --shade--neutral: #666;
+  --_apps---colors--secondary-foreground-dark: #faf9f9;
+  --_typography---headline--font-weight: var(--_typography---font-weight--700);
+  --_shades---copper--100: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 60%,
+    white 40%
+  );
+  --_size---width--full-width: 100%;
+  --shade--neutral-dark: #4d4d4d;
+  --_apps---colors--muted-dark: #69253a;
+  --_typography---headline--line-height: 0.85;
+  --_shades---copper--200: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 70%,
+    white 30%
+  );
+  --_size---width--three-quarters: 75%;
+  --shade--neutral-darker: #222;
+  --_apps---colors--muted-foreground-dark: #f2aaa9;
+  --_typography---headline--letter-spacing: -0.02em;
+  --_shades---copper--300: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 80%,
+    white 20%
+  );
+  --_size---width--half: 50%;
+  --shade--neutral-darkest: #010201;
+  --_apps---colors--accent-dark: #236b7d;
+  --_typography---responsive-headline--xxxl: clamp(
+    7.704rem,
+    calc(7.515rem + 0.943cqi),
+    8.365rem
+  );
+  --_typography---responsive-headline--xxl: clamp(
+    6.863rem,
+    calc(6.695rem + 0.84cqi),
+    7.452rem
+  );
+  --_typography---responsive-headline--xl: clamp(
+    6.022rem,
+    calc(5.875rem + 0.737cqi),
+    6.539rem
+  );
+  --_typography---responsive-headline--lg: clamp(
+    5.182rem,
+    calc(5.055rem + 0.634cqi),
+    5.626rem
+  );
+  --_typography---responsive-headline--base: clamp(
+    3.5rem,
+    calc(3.414rem + 0.429cqi),
+    3.8rem
+  );
+  --_typography---responsive-headline--xs: clamp(
+    2.674rem,
+    calc(2.608rem + 0.327cqi),
+    2.903rem
+  );
+  --_typography---responsive-headline--xxs: clamp(
+    2.26rem,
+    calc(2.205rem + 0.277cqi),
+    2.454rem
+  );
+  --_typography---responsive-headline--tiny: clamp(
+    1.434rem,
+    calc(1.399rem + 0.176cqi),
+    1.557rem
+  );
+  --_typography---headline-size--xl: clamp(
+    6 * 1rem,
+    (
+      (
+          6 -
+            (
+              (9 - 6) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        ((9 - 6) / (var(--_size---min-viewport) - var(--_size---max-viewport))) *
+        100vw
+    ),
+    9 * 1rem
+  );
+  --_typography---headline-size--lg: clamp(
+    5 * 1rem,
+    (
+      (
+          5 -
+            (
+              (7 - 5) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        ((7 - 5) / (var(--_size---min-viewport) - var(--_size---max-viewport))) *
+        100vw
+    ),
+    7 * 1rem
+  );
+  --_typography---headline-size--md: clamp(
+    4.5 * 1rem,
+    (
+      (
+          4.5 -
+            (
+              (6 - 4.5) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (6 - 4.5) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    6 * 1rem
+  );
+  --_typography---headline-size--base: clamp(
+    4 * 1rem,
+    (
+      (
+          4 -
+            (
+              (5 - 4) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        ((5 - 4) / (var(--_size---min-viewport) - var(--_size---max-viewport))) *
+        100vw
+    ),
+    5 * 1rem
+  );
+  --_typography---headline-size--sm: clamp(
+    3.5 * 1rem,
+    (
+      (
+          3.5 -
+            (
+              (4 - 3.5) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (4 - 3.5) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    4 * 1rem
+  );
+  --_typography---headline-size--xs: clamp(
+    2.5 * 1rem,
+    (
+      (
+          2.5 -
+            (
+              (2.5 - 2.5) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (2.5 - 2.5) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    2.5 * 1rem
+  );
+  --_typography---headline-size--xxs: clamp(
+    2 * 1rem,
+    (
+      (
+          2 -
+            (
+              (2 - 2) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        ((2 - 2) / (var(--_size---min-viewport) - var(--_size---max-viewport))) *
+        100vw
+    ),
+    2 * 1rem
+  );
+  --_typography---subheadline--xl: clamp(
+    2.46 * 1rem,
+    (
+      (
+          2.46 -
+            (
+              (3.29 - 2.46) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (3.29 - 2.46) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    3.29 * 1rem
+  );
+  --_typography---subheadline--lg: clamp(
+    1.72 * 1rem,
+    (
+      (
+          1.72 -
+            (
+              (3.69 - 1.72) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (3.69 - 1.72) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    3.69 * 1rem
+  );
+  --_typography---subheadline--md: clamp(
+    1.26 * 1rem,
+    (
+      (
+          1.26 -
+            (
+              (2.58 - 1.26) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (2.58 - 1.26) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    2.58 * 1rem
+  );
+  --_typography---subheadline--base: clamp(
+    1.15 * 1rem,
+    (
+      (
+          1.15 -
+            (
+              (2.32 - 1.15) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (2.32 - 1.15) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    2.32 * 1rem
+  );
+  --_typography---subheadline--sm: clamp(
+    1.05 * 1rem,
+    (
+      (
+          1.05 -
+            (
+              (2.22 - 1.05) /
+                (var(--_size---min-viewport) - var(--_size---ratio--body)) *
+                var(--_size---ratio--body)
+            )
+        ) * 1rem +
+        (
+          (2.22 - 1.05) /
+            (var(--_size---min-viewport) - var(--_size---ratio--body))
+        ) * 100vw
+    ),
+    2.22 * 1rem
+  );
+  --_typography---subheadline--xs: clamp(
+    0.9 * 1rem,
+    (
+      (
+          0.9 -
+            (
+              (1.75 - 0.9) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.75 - 0.9) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.75 * 1rem
+  );
+  --_typography---subheadline--xxs: clamp(
+    0.8 * 1rem,
+    (
+      (
+          0.8 -
+            (
+              (1.5 - 0.8) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.5 - 0.8) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.5 * 1rem
+  );
+  --_typography---responsive-subheadline--jumbo: clamp(
+    3.5rem,
+    calc(3.414rem + 0.429cqi),
+    3.8rem
+  );
+  --_typography---responsive-subheadline--xxxl: clamp(
+    3.156rem,
+    calc(3.078rem + 0.386cqi),
+    3.426rem
+  );
+  --_typography---responsive-subheadline--xxl: clamp(
+    2.811rem,
+    calc(2.742rem + 0.344cqi),
+    3.052rem
+  );
+  --_typography---responsive-subheadline--xl: clamp(
+    2.467rem,
+    calc(2.407rem + 0.302cqi),
+    2.678rem
+  );
+  --_typography---responsive-subheadline--lg: clamp(
+    2.123rem,
+    calc(2.071rem + 0.26cqi),
+    2.305rem
+  );
+  --_typography---responsive-subheadline--md: clamp(
+    1.778rem,
+    calc(1.735rem + 0.218cqi),
+    1.931rem
+  );
+  --_typography---responsive-subheadline--base: clamp(
+    1.434rem,
+    calc(1.399rem + 0.176cqi),
+    1.557rem
+  );
+  --_shades---copper--400: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 90%,
+    white 10%
+  );
+  --_size---width--quarter: 25%;
+  --_apps---colors--accent-foreground-dark: #faf9f9;
+  --_typography---responsive-subheadline--sm: clamp(
+    1.294rem,
+    calc(1.262rem + 0.158cqi),
+    1.405rem
+  );
+  --_typography---responsive-subheadline--xs: clamp(
+    1.154rem,
+    calc(1.126rem + 0.141cqi),
+    1.253rem
+  );
+  --_typography---responsive-subheadline--xxs: clamp(
+    1.014rem,
+    calc(0.989rem + 0.124cqi),
+    1.101rem
+  );
+  --_shades---copper--500: var(--copper--normal);
+  --_size---section--padding-block: var(--_size---size--8x);
+  --_apps---colors--destructive-dark: #d65241;
+  --_typography---responsive-subheadline--xxxs: clamp(
+    0.874rem,
+    calc(0.853rem + 0.107cqi),
+    0.949rem
+  );
+  --_typography---responsive-subheadline--tiny: clamp(
+    0.734rem,
+    calc(0.716rem + 0.09cqi),
+    0.797rem
+  );
+  --_typography---text-size--xxl: clamp(
+    1.75 * 1rem,
+    (
+      (
+          1.75 -
+            (
+              (3.25 - 1.75) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (3.25 - 1.75) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    3.25 * 1rem
+  );
+  --_typography---text-size--xl: clamp(
+    1.45 * 1rem,
+    (
+      (
+          1.55 -
+            (
+              (1.45 - 1.55) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.45 - 1.55) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.55 * 1rem
+  );
+  --_typography---text-size--lg: clamp(
+    1.25 * 1rem,
+    (
+      (
+          1.25 -
+            (
+              (1.35 - 1.25) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (1.35 - 1.25) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    1.35 * 1rem
+  );
+  --_typography---text-size--xxs: clamp(
+    0.85 * 1rem,
+    (
+      (
+          0.85 -
+            (
+              (0.85 - 0.85) /
+                (var(--_size---min-viewport) - var(--_size---max-viewport)) *
+                var(--_size---max-viewport)
+            )
+        ) * 1rem +
+        (
+          (0.85 - 0.85) /
+            (var(--_size---min-viewport) - var(--_size---max-viewport))
+        ) * 100vw
+    ),
+    0.85 * 1rem
+  );
+  --_shades---copper--600: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 90%,
+    black 10%
+  );
+  --_size---radius--sm: 0.25rem;
+  --_apps---colors--border-dark: #69253a;
+  --_shades---copper--700: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 80%,
+    black 20%
+  );
+  --_size---radius--md: 0.5rem;
+  --opacity--snow-5: rgba(255, 255, 255, 0.05);
+  --_apps---colors--input-dark: #0e301a;
+  --_shades---copper--800: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 70%,
+    black 30%
+  );
+  --_size---radius--lg: 0.75rem;
+  --opacity--snow-10: rgba(255, 255, 255, 0.1);
+  --_apps---colors--ring-dark: #9a5636;
+  --_apps---colors--destructive-foreground: #faf9f9;
+  --_apps---colors--destructive-foreground-dark: #faf9f9;
+  --_shades---copper--900: color-mix(
+    in srgb,
+    var(--_shades---copper--500) 60%,
+    black 40%
+  );
+  --_size---radius--xl: 1rem;
+  --opacity--snow-15: hsla(0, 0%, 100%, 0.15);
+  --_apps---charts--chart-1-dark: #d65241;
+  --_shades---oxblood--100: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 80%,
+    white 40%
+  );
+  --_size---radius--round: 100rem;
+  --opacity--snow-20: rgba(255, 255, 255, 0.2);
+  --_apps---charts--chart-2-dark: #f2aaa9;
+  --_shades---oxblood--200: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 70%,
+    white 30%
+  );
+  --_size---size--0-25x: 0.25rem;
+  --opacity--snow-30: hsla(0, 0%, 100%, 0.3);
+  --_apps---charts--chart-3-dark: #ddc5a4;
+  --_shades---oxblood--300: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 80%,
+    white 20%
+  );
+  --_size---size--0-5x: 0.5rem;
+  --opacity--snow-40: hsla(0, 0%, 100%, 0.4);
+  --_apps---charts--chart-4-dark: #236b7d;
+  --_typography---body--font-weight: var(--_typography---font-weight--300);
+  --_shades---oxblood--400: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 90%,
+    white 10%
+  );
+  --_size---size--0-75x: 0.75rem;
+  --opacity--snow-50: hsla(0, 0%, 100%, 0.5);
+  --_apps---charts--chart-5-dark: #9a5636;
+  --_typography---body--font-size: var(--_typography---text-size--sm);
+  --_shades---oxblood--500: var(--oxblood--normal);
+  --_size---size--1x: 1rem;
+  --opacity--snow-60: hsla(0, 0%, 100%, 0.6);
+  --_apps---sidebar--sidebar-dark: #4e332d;
+  --_typography---body--line-height-sm: 1;
+  --_shades---oxblood--600: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 90%,
+    black 10%
+  );
+  --_size---size--1-25x: 1.25rem;
+  --opacity--neutral-darkest-5: hsla(0, 0%, 0%, 0.05);
+  --_apps---sidebar--sidebar-foreground-dark: #faf9f9;
+  --_typography---body--line-height: 1.5;
+  --_shades---oxblood--700: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 80%,
+    black 20%
+  );
+  --_size---size--1-5x: 1.5rem;
+  --opacity--neutral-darkest-10: hsla(0, 0%, 0%, 0.1);
+  --_apps---sidebar--sidebar-primary-dark: #d65241;
+  --_typography---body--letter-spacing: -0.0025em;
+  --_shades---oxblood--800: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 70%,
+    black 30%
+  );
+  --_size---size--1-75x: 1.75rem;
+  --opacity--neutral-darkest-15: hsla(0, 0%, 0%, 0.15);
+  --_apps---sidebar--sidebar-primary-foreground-dark: #faf9f9;
+  --_typography---body--margin-bottom: 1%;
+  --_shades---oxblood--900: color-mix(
+    in srgb,
+    var(--_shades---oxblood--500) 80%,
+    black 40%
+  );
+  --_size---size--2x: 2rem;
+  --opacity--neutral-darkest-20: hsla(0, 0%, 0%, 0.2);
+  --_apps---sidebar--sidebar-accent-dark: #0e301a;
+  --_shades---red--100: color-mix(
+    in srgb,
+    var(--_shade---red--500) 60%,
+    white 40%
+  );
+  --_size---size--3x: 3rem;
+  --opacity--neutral-darkest-30: hsla(0, 0%, 0%, 0.3);
+  --_apps---sidebar--sidebar-accent-foreground-dark: #ebe8e0;
+  --_shades---red--200: color-mix(
+    in srgb,
+    var(--_shade---red--500) 70%,
+    white 30%
+  );
+  --_size---size--4x: 4rem;
+  --_apps---sidebar--sidebar-border-dark: #69253a;
+  --_shades---red--300: color-mix(
+    in srgb,
+    var(--_shade---red--500) 80%,
+    white 20%
+  );
+  --_size---size--5x: 5rem;
+  --opacity--neutral-darkest-50: hsla(0, 0%, 0%, 0.5);
+  --_apps---sidebar--sidebar-ring-dark: #d65241;
+  --_typography---font-weight--900: 900;
+  --_shades---red--400: color-mix(
+    in srgb,
+    var(--_shade---red--500) 90%,
+    white 10%
+  );
+  --_size---size--6x: 6rem;
+  --_apps---effects--shadow-x: 0px;
+  --_typography---font-weight--800: 800;
+  --_shades---red--500: #000000;
+  --_size---size--7x: 7rem;
+  --_size---max-width--xxl: 1820px;
+  --_apps---effects--shadow-y: 8px;
+  --_typography---font-weight--700: 700;
+  --_shades---red--600: color-mix(
+    in srgb,
+    var(--_shade---red--500) 90%,
+    black 10%
+  );
+  --_size---size--8x: 8rem;
+  --_size---max-width--xl: 1720px;
+  --_apps---effects--shadow-blur: 10px;
+  --_typography---font-weight--600: 600;
+  --_shades---red--700: color-mix(
+    in srgb,
+    var(--_shade---red--500) 80%,
+    black 20%
+  );
+  --_size---icon-size--xxl: 3.75rem;
+  --_size---max-width--lg: 1600px;
+  --_apps---effects--shadow-spread: 0px;
+  --_typography---font-weight--500: 500;
+  --_shades---red--800: color-mix(
+    in srgb,
+    var(--_shade---red--500) 70%,
+    black 30%
+  );
+  --_size---icon-size--xl: 3.5rem;
+  --_size---max-width--md: 1440px;
+  --_apps---effects--shadow-opacity: 10%;
+  --_typography---font-weight--400: 400;
+  --_shades---red--900: color-mix(
+    in srgb,
+    var(--_shade---red--500) 60%,
+    black 40%
+  );
+  --_size---icon-size--lg: 3.25rem;
+  --_size---max-width--base: 1280px;
+  --_apps---effects--shadow-color: #4e332d;
+  --_typography---font-weight--300: 300;
+  --_shades---purple--100: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 60%,
+    white 40%
+  );
+  --_size---icon-size--md: 2.75rem;
+  --_size---max-width--sm: 1150px;
+  --_apps---effects--shadow-x-dark: 0px;
+  --_typography---font-weight--200: 200;
+  --_shades---purple--200: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 70%,
+    white 30%
+  );
+  --_size---icon-size--base: 2.5rem;
+  --_size---max-width--xs: 900px;
+  --_apps---effects--shadow-y-dark: 10px;
+  --_shades---purple--300: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 80%,
+    white 20%
+  );
+  --_size---icon-size--sm: 2.25rem;
+  --_size---max-width--xxs: 12px;
+  --_apps---effects--shadow-blur-dark: 12px;
+  --_shades---purple--400: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 90%,
+    white 10%
+  );
+  --_size---icon-size--xs: 2rem;
+  --_apps---effects--shadow-spread-dark: 0px;
+  --_shades---purple--500: #000000;
+  --_size---icon-size--xxs: 1.5rem;
+  --_apps---effects--shadow-opacity-dark: 40%;
+  --_shades---purple--600: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 90%,
+    black 10%
+  );
+  --_size---line-height--xxl: 2;
+  --_apps---effects--shadow-color-dark: #000000;
+  --_shades---purple--700: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 80%,
+    black 20%
+  );
+  --_size---line-height--xl: 1.75;
+  --_apps---color-selection--cowboy-umber: #4e332d;
+  --_shades---purple--800: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 70%,
+    black 30%
+  );
+  --_size---line-height--lg: 1.5;
+  --_apps---color-selection--paper: #faf9f9;
+  --_shades---purple--900: color-mix(
+    in srgb,
+    var(--_shade---purple--500) 60%,
+    black 40%
+  );
+  --_size---line-height--md: 1.25;
+  --_apps---color-selection--mist: #f2f2f2;
+  --_shades---grey-1--100: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 60%,
+    white 40%
+  );
+  --_size---line-height--base: 1.15;
+  --_apps---color-selection--alpine-linen: #ebe8e0;
+  --_shades---grey-1--200: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 80%,
+    white 20%
+  );
+  --_size---line-height--sm: 0.75;
+  --_apps---color-selection--copper: #9a5636;
+  --_shades---grey-1--300: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 70%,
+    white 30%
+  );
+  --_size---line-height--xs: 0.95;
+  --_apps---color-selection--lake-forest: #0e301a;
+  --_shades---grey-1--400: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 90%,
+    white 10%
+  );
+  --_size---line-height--xxs: 0.85;
+  --_apps---color-selection--bandana-red: #d65241;
+  --_size---button-xs--font-size: var(--_typography---text-size--xs);
+  --_shades---grey-1--500: #000000;
+  --_apps---color-selection--lodge-yellow: #fddc4e;
+  --_size---button-xs--border-radius: 10px;
+  --_shades---grey-1--600: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 90%,
+    black 10%
+  );
+  --_apps---color-selection--smoke: #343833;
+  --_shades---grey-1--700: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 80%,
+    black 20%
+  );
+  --_apps---color-selection--ash: #ccc7bb;
+  --_shades---grey-1--800: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 70%,
+    black 30%
+  );
+  --_apps---color-selection--whiskey-sour: #ddc5a4;
+  --_shades---grey-1--900: color-mix(
+    in srgb,
+    var(--_shade---grey-1--500) 60%,
+    black 40%
+  );
+  --_size---button-sm--font-size: var(--_typography---text-size--sm);
+  --_apps---color-selection--nude-ember: #f2aaa9;
+  --_size---button-sm--font-weight: 700;
+  --_shades---grey-2--100: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 60%,
+    white 40%
+  );
+  --_size---button-sm--border-radius: 12px;
+  --_apps---color-selection--oxblood: #69253a;
+  --_shades---grey-2--200: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 80%,
+    white 20%
+  );
+  --_size---button-sm--border-width: 3px;
+  --_apps---color-selection--oxidized-teal: #236b7d;
+  --_shades---grey-2--300: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 70%,
+    white 30%
+  );
+  --_size---button-sm--padding-top: 0.75rem;
+  --_shades---grey-2--400: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 90%,
+    white 10%
+  );
+  --_size---button-sm--padding-bottom: 0.75rem;
+  --_shades---grey-2--500: #000000;
+  --_size---button-sm--padding-left: 1rem;
+  --_shades---grey-2--600: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 90%,
+    black 10%
+  );
+  --_size---button-sm--padding-right: 1rem;
+  --_size---button--font-size: var(--_typography---text-size--base);
+  --_shades---grey-2--700: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 80%,
+    black 20%
+  );
+  --_size---button--font-weight: 700;
+  --_size---button--border-radius: 14px;
+  --_size---button--border-width: 3px;
+  --_shades---grey-2--800: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 70%,
+    black 30%
+  );
+  --_size---button--line-height: 1;
+  --_shades---grey-2--900: color-mix(
+    in srgb,
+    var(--_shade---grey-2--500) 60%,
+    black 40%
+  );
+  --_size---button--letter-spacing: 0.05em;
+  --_shades---grey-2--font-family: Arial, "Helvetica Neue", Helvetica,
+    sans-serif;
+  --_shades---frost--500: #000000;
+  --_shades---frost--700: color-mix(
+    in srgb,
+    var(--_shade---frost--500) 80%,
+    black 20%
+  );
+  --_size---button--padding-top: 1rem;
+  --_shades---frost--900: color-mix(
+    in srgb,
+    var(--_shade---frost--500) 60%,
+    black 40%
+  );
+  --_size---button--padding-bottom: 1rem;
+  --_size---button--padding-right: 1.15rem;
+  --_size---button--padding-left: 1.15rem;
+  --_size---button--color: white;
+  --_size---button-md--text-size: var(--_typography---text-size--md);
+  --_size---button-md--border-radius: 16px;
+  --_size---button-lg--font-size: var(--_typography---text-size--lg);
+  --_size---button-lg--font-weight: 700;
+  --_size---button-lg--border-radius: 18px;
+  --_size---button-lg--border-width: 3.5px;
+  --_size---button-lg--padding-top: 1.25rem;
+  --_size---button-lg--padding-bottom: 1.25rem;
+  --_size---button-lg--padding-left: 1.75rem;
+  --_size---button-lg--padding-right: 1.75rem;
+  --_size---button-xl--font-size: var(--_typography---text-size--xl);
+  --_size---button-xl--border-radius: 20px;
+  --_size---label--font-weight: 700;
+  --_size---label--line-height: 1;
+  --_size---label--padding-top: 0.15em;
+  --_size---label--padding-bottom: 0.15em;
+  --_size---label--padding-left: 0.25em;
+  --_size---label--padding-right: 0.25em;
+  --_size---ratio--letter-spacing: 0.055em;
+  --_size---ratio--subheading: 0.4927;
+  --_size---ratio--body: 0.2932;
+  --_typography---responsive-text--jumbo: clamp(
+    1.74rem,
+    calc(1.916rem + 0.241cqi),
+    2.03rem
+  );
+  --_size---max-viewport: 120;
+  --_size---min-viewport: 16;
+  --_typography---responsive-text--xxxl: clamp(
+    1.627rem,
+    calc(1.782rem + 0.224cqi),
+    1.903rem
+  );
+  --_typography---responsive-text--xxl: clamp(
+    1.589rem,
+    calc(1.647rem + 0.207cqi),
+    1.833rem
+  );
+  --_typography---responsive-text--xl: clamp(
+    1.551rem,
+    calc(1.513rem + 0.19cqi),
+    1.684rem
+  );
+  --_typography---responsive-text--lg: clamp(
+    1.413rem,
+    calc(1.378rem + 0.173cqi),
+    1.534rem
+  );
+  --_typography---responsive-text--sm: clamp(
+    1.277rem,
+    calc(1.246rem + 0.156cqi),
+    1.387rem
+  );
+  --_typography---responsive-text--xs: clamp(
+    1.141rem,
+    calc(1.113rem + 0.14cqi),
+    1.239rem
+  );
+  --_typography---responsive-text--xxs: clamp(
+    1.006rem,
+    calc(0.981rem + 0.123cqi),
+    1.092rem
+  );
+  --_typography---responsive-text--xxxs: clamp(
+    0.87rem,
+    calc(0.848rem + 0.107cqi),
+    0.944rem
+  );
+  --_typography---responsive-text--tiny: clamp(
+    0.734rem,
+    calc(0.716rem + 0.09cqi),
+    0.797rem
+  );
+  --_typography---eyebrow--font-family: Supreme;
+  --_typography---eyebrow--letter-spacing: 0.1em;
+  --_typography---eyebrow--font-weight: 300;
+  --_typography---eyebrow--font-size: 1rem;
+  --_typography---h0--font-size: var(--_typography---headline-size--md);
+  --_typography---h0--font-weight: var(--_typography---font-weight--700);
+  --_typography---h0--line-height: 0.8;
+  --_typography---h0--letter-spacing: -0.01em;
+  --_typography---h0--margin-bottom: 0.5%;
+  --_typography---h1--font-size: var(--_typography---headline-size--lg);
+  --_typography---h1--font-weight: var(--_typography---font-weight--700);
+  --_typography---h1--line-height: 0.8;
+  --_typography---h1--letter-spacing: -0.01em;
+  --_typography---h1--margin-bottom: 0px;
+  --_typography---h2--font-size: var(--_typography---headline-size--md);
+  --_typography---h2--font-weight: var(--_typography---font-weight--700);
+  --_typography---h2--line-height: 0.8;
+  --_typography---h2--letter-spacing: -0.01em;
+  --_typography---h2--margin-bottom: 1%;
+  --_typography---h3--font-size: var(--_typography---headline-size--base);
+  --_typography---h3--font-weight: var(--_typography---font-weight--700);
+  --_typography---h3--line-height: 0.85;
+  --_typography---h3--letter-spacing: 0em;
+  --_typography---h3--margin-bottom: 0.15em;
+  --_typography---h4--font-size: var(--_typography---headline-size--sm);
+  --_typography---h4--font-weight: var(--_typography---font-weight--700);
+  --_typography---h4--line-height: 0.85;
+  --_typography---h4--letter-spacing: 0em;
+  --_typography---h4--margin-bottom: 0.15em;
+  --_typography---h5--font-size: var(--_typography---headline-size--xs);
+  --_typography---h5--font-weight: var(--_typography---font-weight--700);
+  --_typography---h5--line-height: 0.85;
+  --_typography---h5--letter-spacing: 0em;
+  --_typography---h5--margin-bottom: 0.15em;
+  --_typography---h6--font-size: var(--_typography---headline-size--xxs);
+  --_typography---h6--font-weight: var(--_typography---font-weight--700);
+  --_typography---h6--line-height: 0.95;
+  --_typography---h6--letter-spacing: 0em;
+  --_typography---h6--margin-bottom: 0.15em;
+  --_typography---list--font-family: "General Sans";
+  --_typography---list--line-height: 2;
+  --_typography---s0--font-size: var(--_typography---subheadline--xl);
+  --_typography---s0--font-weight: var(--_typography---font-weight--300);
+  --_typography---s0--line-height: 1;
+  --_typography---s0--letter-spacing: 0px;
+  --_typography---s0--color: white;
+  --_typography---s1--font-size: var(--_typography---subheadline--lg);
+  --_typography---s1--font-weight: var(--_typography---font-weight--300);
+  --_typography---s1--line-height: 1.25;
+  --_typography---s1--letter-spacing: 0px;
+  --_typography---s2--font-size: var(--_typography---subheadline--md);
+  --_typography---s2--font-weight: var(--_typography---font-weight--300);
+  --_typography---s2--line-height: 1.25;
+  --_typography---s2--letter-spacing: 0px;
+  --_typography---s3--font-weight: var(--_typography---font-weight--200);
+  --_typography---s3--font-size: var(--_typography---subheadline--base);
+  --_typography---s3--line-height: 1.25;
+  --_typography---s3--letter-spacing: 0px;
+  --_typography---s4--font-weight: var(--_typography---font-weight--300);
+  --_typography---s4--s4-font-size: var(--_typography---subheadline--sm);
+  --_typography---s4--s4-line-height: 1.25;
+  --_typography---s4--letter-spacing: 0px;
+  --_typography---s5--font-weight: var(--_typography---font-weight--300);
+  --_typography---s5--font-size: var(--_typography---subheadline--xs);
+  --_typography---s5--line-height: 1.25;
+  --_typography---s5--letter-spacing: 0px;
+  --_typography---s6--font-size: var(--_typography---subheadline--xxs);
+  --_typography---s6--s6-font-weight: var(--_typography---font-weight--300);
+  --_typography---s6--font-weight: 1.25;
+  --_typography---s6--letter-spacing: 0px;
+  --_typography---paragraph-xl--text-size: var(--_typography---text-size--xl);
+  --_typography---paragraph-xl--line-height: 1.5;
+  --_typography---paragraph-lg--line-height: 1.5;
+  --_typography---paragraph-lg--font-size: var(--_typography---text-size--lg);
+  --_typography---paragraph-md--font-size: var(--_typography---text-size--md);
+  --_typography---paragraph-md--line-height: 1.5;
+  --_typography---paragraph--font-size: var(--_typography---text-size--base);
+  --_typography---paragraph--line-height: 1.55;
+  --_typography---paragraph-sm--font-size: var(--_typography---text-size--md);
+  --_typography---paragraph-sm--line-height: 1.35px;
+  --_typography---paragraph-xs--font-size: var(--_typography---text-size--xs);
+  --_typography---paragraph-xs--line-height: 1;
+  --_typography---paragraph-xxs--font-size: var(--_typography---text-size--xxs);
+  --_typography---paragraph-xxs--line-height: 1;
+  --_typography---block-quote--font-size: 2rem;
+  --_typography---block-quote--font-weight: var(
+    --_typography---font-weight--500
+  );
+  --_typography---block-quote--letter-spacing: 0.01em;
+  --_typography---block-quote--background: transparent;
+  --_typography---block-quote--raduis: 0px;
+  --_typography---block-quote--border-width: 3px;
+  --_typography---block-quote--border-color: transparent;
+  --_typography---block-quote--padding-inline: 0px;
+  --_typography---block-quote--padding-block: 0px;
+  --alpine-linen--500\<deleted\|variable-b517428b-ec44-d59a-619d-51b62bf1f9d5\>: #ebe8e0ff;
+  --_color---cowboy-umber--500\<deleted\|variable-9bbc5a8c-37ce-63ad-369e-022e8cd48dca\>: #4e332dff;
+  --_tokens---0\<deleted\|variable-14feb387-91a1-2e9e-b396-e24e30919d81\>: 0rem;
+  --_base-collection-2---core-colors--secondary\<deleted\|variable-fe60d3b4-11da-e9d0-3b89-609d263affec\>: white;
+  --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
+  --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>: black;
+  --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>: white;
+  --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
+  --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
+}

@@ -1,0 +1,125 @@
+/**
+GENERATED FILE
+
+webflow.css is generated automatically by webflow and is used to expose variables from your webflow design system in your app.
+
+Any changes to this file will be overwritten the next time your app is loaded in the workbench.
+
+In order to override any of these variables, you can redefine them in a CSS file that is imported globally after the webflow.css on your page.
+
+Font imports and @font-face declarations are in fonts.css, which should be imported before this file.
+
+You can learn more about CSS custom properties here:
+https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascading_variables/Using_CSS_custom_properties#inheritance_of_custom_properties
+*/
+
+:root {
+  --_apps---typography--heading-font: Desertrain, 'Trebuchet MS', sans-serif;
+  --_apps---typography--body-font: Uchen, 'Trebuchet MS', sans-serif;
+  --_apps---typography--button-font: Brothers, Georgia, sans-serif;
+  --_apps---typography--sans: 'Bianco Sans', Impact, sans-serif;
+  --_apps---typography--serif: Uchen, 'Trebuchet MS', sans-serif;
+  --_apps---typography--mono: Brothers, Georgia, sans-serif;
+  --_apps---typography--tracking-normal: 0.05em;
+  --_apps---typography--tracking-tighter: 0em;
+  --_apps---typography--tracking-tight: 0.025em;
+  --_apps---typography--tracking-wide: 0.075em;
+  --_apps---typography--tracking-wider: 0.1em;
+  --_apps---typography--tracking-widest: 0.15em;
+  --_apps---sizes--radius: 50px;
+  --_apps---sizes--spacing: 0.25rem;
+  --_apps---sizes--radius-lg: 50px;
+  --_apps---sizes--radius-sm: 46px;
+  --_apps---sizes--radius-md: 48px;
+  --_apps---sizes--radius-xl: 54px;
+  --_apps---colors--background: #faf9f9;
+  --_apps---colors--foreground: #4e332d;
+  --_apps---colors--card: #ebe8e0;
+  --_apps---colors--card-foreground: #4e332d;
+  --_apps---colors--popover: #faf9f9;
+  --_apps---colors--popover-foreground: #4e332d;
+  --_apps---colors--primary: #9a5636;
+  --_apps---colors--primary-foreground: #faf9f9;
+  --_apps---colors--secondary: #ddc5a4;
+  --_apps---colors--secondary-foreground: #4e332d;
+  --_apps---colors--muted: #ebe8e0;
+  --_apps---colors--muted-foreground: #69253a;
+  --_apps---colors--accent: #d65241;
+  --_apps---colors--accent-foreground: #faf9f9;
+  --_apps---colors--destructive: #69253a;
+  --_apps---colors--border: #ddc5a4;
+  --_apps---colors--input: #ebe8e0;
+  --_apps---colors--ring: #d65241;
+  --_apps---charts--chart-1: #9a5636;
+  --_apps---charts--chart-2: #0e301a;
+  --_apps---charts--chart-3: #236b7d;
+  --_apps---charts--chart-4: #d65241;
+  --_apps---charts--chart-5: #f2aaa9;
+  --_apps---sidebar--sidebar: #faf9f9;
+  --_apps---sidebar--sidebar-foreground: #4e332d;
+  --_apps---sidebar--sidebar-primary: #9a5636;
+  --_apps---sidebar--sidebar-primary-foreground: #faf9f9;
+  --_apps---sidebar--sidebar-accent: #d65241;
+  --_apps---sidebar--sidebar-accent-foreground: #faf9f9;
+  --_apps---sidebar--sidebar-border: #ddc5a4;
+  --_apps---sidebar--sidebar-ring: #d65241;
+  --_apps---colors--background-dark: #4e332d;
+  --_apps---colors--foreground-dark: #faf9f9;
+  --_apps---colors--card-dark: #0e301a;
+  --_apps---colors--card-foreground-dark: #ebe8e0;
+  --_apps---colors--popover-dark: #4e332d;
+  --_apps---colors--popover-foreground-dark: #faf9f9;
+  --_apps---colors--primary-dark: #d65241;
+  --_apps---colors--primary-foreground-dark: #faf9f9;
+  --_apps---colors--secondary-dark: #9a5636;
+  --_apps---colors--secondary-foreground-dark: #faf9f9;
+  --_apps---colors--muted-dark: #69253a;
+  --_apps---colors--muted-foreground-dark: #f2aaa9;
+  --_apps---colors--accent-dark: #236b7d;
+  --_apps---colors--accent-foreground-dark: #faf9f9;
+  --_apps---colors--destructive-dark: #d65241;
+  --_apps---colors--border-dark: #69253a;
+  --_apps---colors--input-dark: #0e301a;
+  --_apps---colors--ring-dark: #9a5636;
+  --_apps---colors--destructive-foreground: #faf9f9;
+  --_apps---colors--destructive-foreground-dark: #faf9f9;
+  --_apps---charts--chart-1-dark: #d65241;
+  --_apps---charts--chart-2-dark: #f2aaa9;
+  --_apps---charts--chart-3-dark: #ddc5a4;
+  --_apps---charts--chart-4-dark: #236b7d;
+  --_apps---charts--chart-5-dark: #9a5636;
+  --_apps---sidebar--sidebar-dark: #4e332d;
+  --_apps---sidebar--sidebar-foreground-dark: #faf9f9;
+  --_apps---sidebar--sidebar-primary-dark: #d65241;
+  --_apps---sidebar--sidebar-primary-foreground-dark: #faf9f9;
+  --_apps---sidebar--sidebar-accent-dark: #0e301a;
+  --_apps---sidebar--sidebar-accent-foreground-dark: #ebe8e0;
+  --_apps---sidebar--sidebar-border-dark: #69253a;
+  --_apps---sidebar--sidebar-ring-dark: #d65241;
+  --_apps---effects--shadow-x: 0px;
+  --_apps---effects--shadow-y: 8px;
+  --_apps---effects--shadow-blur: 10px;
+  --_apps---effects--shadow-spread: 0px;
+  --_apps---effects--shadow-opacity: 10%;
+  --_apps---effects--shadow-color: #4e332d;
+  --_apps---effects--shadow-x-dark: 0px;
+  --_apps---effects--shadow-y-dark: 10px;
+  --_apps---effects--shadow-blur-dark: 12px;
+  --_apps---effects--shadow-spread-dark: 0px;
+  --_apps---effects--shadow-opacity-dark: 40%;
+  --_apps---effects--shadow-color-dark: #000000;
+  --_apps---color-selection--cowboy-umber: #4e332d;
+  --_apps---color-selection--paper: #faf9f9;
+  --_apps---color-selection--mist: #f2f2f2;
+  --_apps---color-selection--alpine-linen: #ebe8e0;
+  --_apps---color-selection--copper: #9a5636;
+  --_apps---color-selection--lake-forest: #0e301a;
+  --_apps---color-selection--bandana-red: #d65241;
+  --_apps---color-selection--lodge-yellow: #fddc4e;
+  --_apps---color-selection--smoke: #343833;
+  --_apps---color-selection--ash: #ccc7bb;
+  --_apps---color-selection--whiskey-sour: #ddc5a4;
+  --_apps---color-selection--nude-ember: #f2aaa9;
+  --_apps---color-selection--oxblood: #69253a;
+  --_apps---color-selection--oxidized-teal: #236b7d;
+}

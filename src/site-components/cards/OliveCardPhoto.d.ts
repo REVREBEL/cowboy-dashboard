@@ -1,0 +1,30 @@
+import * as React from "react";
+import * as Types from "../webflow_modules/types";
+
+declare function OliveCardPhoto(props: {
+  cardStyleCardColor?: "Primary" | "Secondary" | "Is-Inverse" | "On-Inverse";
+  headingHeadingTag?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  headingHeadingText?: React.ReactNode;
+  headingSubheadingText?: React.ReactNode;
+  headingSubheadingVisible?: Types.Visibility.VisibilityConditions;
+  imageImage?: Types.Asset.Image;
+  imageImageAltText?: Types.Basic.AltText;
+  imageImageVisible?: Types.Visibility.VisibilityConditions;
+  primaryLinkPrimaryLink?: Types.Basic.Link;
+  primaryLinkPrimaryLinkIcon?: Types.Asset.Image;
+  primaryLinkPrimaryLinkIconAltText?: Types.Basic.AltText;
+  primaryLinkPrimaryLinkIconVisible?: Types.Visibility.VisibilityConditions;
+  primaryLinkPrimaryLinkId?: string;
+  primaryLinkPrimaryLinkText?: React.ReactNode;
+  primaryLinkPrimaryLinkVisible?: Types.Visibility.VisibilityConditions;
+  secondaryLinkSecondaryLink?: Types.Basic.Link;
+  secondaryLinkSecondaryLinkIcon?: Types.Asset.Image;
+  secondaryLinkSecondaryLinkIconAltText?: Types.Basic.AltText;
+  secondaryLinkSecondaryLinkIconVisible?: Types.Visibility.VisibilityConditions;
+  secondaryLinkSecondaryLinkId?: string;
+  secondaryLinkSecondaryLinkText?: React.ReactNode;
+  secondaryLinkSecondaryLinkVisible?: Types.Visibility.VisibilityConditions;
+  tagSlot?: React.ReactNode;
+  tagTagSlot?: Types.Devlink.Slot;
+  tagTagSlotVisible?: Types.Visibility.VisibilityConditions;
+}): React.JSX.Element;

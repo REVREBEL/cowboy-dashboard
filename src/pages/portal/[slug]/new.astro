@@ -1,0 +1,137 @@
+---
+import MainLayout from '../../../layouts/main.astro';
+import { COLLECTIONS } from '../../../lib/collections-config';
+import { WebflowClient } from 'webflow-api';
+import ItemEditor from '../../../components/ItemEditor';
+import { baseUrl } from '../../../lib/base-url';
+import { Toaster } from '../../../components/ui/sonner';
+import { TooltipProvider } from '../../../components/ui/tooltip';
+
+const { slug } = Astro.params;
+const pageClass = 'portal-item-new';
+
+console.log('=== NEW ITEM PAGE LOAD ===');
+console.log('Slug:', slug);
+
+// Find collection
+const collection = COLLECTIONS.find(c => c.slug === slug);
+console.log('Collection found:', collection?.name);
+
+if (!collection) {
+  console.log('No collection found, redirecting');
+  return Astro.redirect('/portal');
+}
+
+// Get collection details to get fields
+const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || import.meta.env.WEBFLOW_CMS_API_TOKEN;
+const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
+console.log('Token exists:', !!token);
+
+// Validate required environment variables
+if (!token) {
+  throw new Error('Missing WEBFLOW_CMS_API_TOKEN');
+}
+
+const client = new WebflowClient({
+  accessToken: token,
+  ...(apiHost && { baseUrl: apiHost })
+});
+
+let collectionDetails = null;
+let error = null;
+
+console.log('Fetching collection details...');
+try {
+  collectionDetails = await client.collections.get(collection.id);
+  console.log('✓ Collection details fetched, fields:', collectionDetails.fields?.length);
+} catch (e: any) {
+  console.error('✗ Failed to fetch collection details:', e.message);
+  error = `Failed to load collection details: ${e.message}`;
+}
+
+const fields = collectionDetails?.fields || [];
+console.log('Final fields count:', fields.length);
+
+// Create initial data with empty values
+const initialData: Record<string, any> = {
+  name: '',
+  slug: '',
+};
+
+// Set default values for boolean fields
+fields.forEach(field => {
+  if (field.type === 'Bool' || field.type === 'Switch') {
+    initialData[field.slug] = false;
+  }
+});
+
+console.log('Initial data:', initialData);
+console.log('=== END NEW ITEM PAGE LOAD ===');
+
+// If we failed to load collection details, show error
+if (!collectionDetails) {
+  return Astro.redirect(`${baseUrl}/portal/${slug}`);
+}
+---
+
+<MainLayout pageClass={pageClass}>
+  <div class="min-h-screen bg-background">
+    <!-- Header -->
+    <header class="border-b border-border bg-card">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div class="mb-4">
+          <a 
+            href={`${baseUrl}/portal/${slug}`}
+            class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 12L6 8l4-4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {collection.name}
+          </a>
+        </div>
+        
+        <div>
+          <h1 class="font-heading text-2xl sm:text-3xl text-foreground mb-1.5">
+            New {collection.singularName}
+          </h1>
+          <p class="text-sm text-muted-foreground font-body">
+            Create a new {collection.singularName.toLowerCase()} in the CMS
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      {error ? (
+        <div class="border border-destructive bg-destructive/10 px-4 py-3 mb-6">
+          <p class="text-sm text-destructive font-body">
+            {error}
+          </p>
+        </div>
+      ) : (
+        <TooltipProvider client:only="react">
+          <ItemEditor 
+            client:only="react"
+            collectionId={collection.id}
+            collectionSlug={collection.slug}
+            itemId="new"
+            fields={collectionDetails.fields}
+            initialData={initialData}
+            baseUrl={baseUrl}
+          />
+        </TooltipProvider>
+      )}
+    </main>
+  </div>
+  
+  <Toaster client:only="react" />
+</MainLayout>
+
+<style>
+  .portal-item-new h1 {
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+</style>

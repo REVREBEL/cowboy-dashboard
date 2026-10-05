@@ -1,0 +1,87 @@
+
+
+
+
+
+---
+import MainLayout from '../../layouts/main.astro';
+import { COLLECTIONS, getCollectionsByComplexity } from '../../lib/collections-config';
+import { baseUrl } from '../../lib/base-url';
+
+const pageClass = 'portal-home';
+const collections = COLLECTIONS;
+---
+
+<MainLayout pageClass="portal-home">
+  <div class="min-h-screen" style="background: #faf9f9;">
+    <!-- Header -->
+    <header class="border-b" style="background: #ebe8e0; border-color: #ddc5a4;">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <h1 class="font-heading text-2xl sm:text-3xl mb-2" style="color: #4e332d;">
+          CMS Portal
+        </h1>
+        <p class="text-sm font-body" style="color: #69253a;">
+          Manage content across {collections.length} collections
+        </p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div class="grid gap-px border" style="background: #ddc5a4; border-color: #ddc5a4;">
+        <div class="mb-8">
+          <a 
+            href={`${baseUrl}/`}
+            class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="ml-2">Home</span>
+          </a>
+        </div>
+        {collections.map((collection) => (
+          <a 
+            href={`${baseUrl}/portal/${collection.slug}`}
+            class="block border border-border bg-card hover:bg-accent/5 transition-colors px-4 py-3"
+          >
+            <div class="flex items-center justify-between gap-4 sm:gap-6">
+              <div class="flex-1 min-w-0">
+                <h2 class="font-heading text-sm sm:text-base group-hover:text-primary transition-colors mb-1 truncate" style="color: #4e332d;">
+                  {collection.name}
+                </h2>
+                <p class="text-xs font-mono truncate" style="color: #69253a;">
+                  {collection.slug}
+                </p>
+              </div>
+              <div class="text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" style="color: #69253a;">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M7 4l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </main>
+  </div>
+</MainLayout>
+
+<style>
+  .portal-home h1 {
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+  
+  .portal-home h2 {
+    font-weight: 500;
+  }
+</style>
+
+
+
+
+
+
+
+
