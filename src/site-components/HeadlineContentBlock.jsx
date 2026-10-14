@@ -88,7 +88,7 @@ export function HeadlineContentBlock({
                 ? "large"
                 : headlineHeadlineTextSize === "Medium"
                 ? ""
-                : headlineHeadlineTextSize === "None"
+                : headlineHeadlineTextSize === "Normal"
                 ? "base"
                 : headlineHeadlineTextSize === "Small"
                 ? "small"
@@ -173,7 +173,7 @@ export function HeadlineContentBlock({
                           ? "95"
                           : headlineHeadlineTextSize === "Medium"
                           ? "76"
-                          : headlineHeadlineTextSize === "None"
+                          : headlineHeadlineTextSize === "Normal"
                           ? "60"
                           : headlineHeadlineTextSize === "Small"
                           ? "48"
@@ -198,7 +198,7 @@ export function HeadlineContentBlock({
                           ? "36"
                           : headlineHeadlineTextSize === "Medium"
                           ? "32"
-                          : headlineHeadlineTextSize === "None"
+                          : headlineHeadlineTextSize === "Normal"
                           ? "28"
                           : headlineHeadlineTextSize === "Small"
                           ? "24"
@@ -218,11 +218,13 @@ export function HeadlineContentBlock({
                           : "bold"
                       }
                       data-text-wrap={
-                        headlineHeadlineWrapping
-                          ? "wrap-headline"
-                          : !headlineHeadlineWrapping
-                          ? "no-wrapping"
-                          : "wrap-headline"
+                        settingsTextWrap === "Normal"
+                          ? "auto"
+                          : settingsTextWrap === "Text Wrap Balance"
+                          ? "balance"
+                          : settingsTextWrap === "Text Wrap Pretty"
+                          ? "pretty"
+                          : "auto"
                       }
                       tag={headlineHeadlineTag}
                     >
@@ -250,8 +252,8 @@ export function HeadlineContentBlock({
                         : "none"
                     }
                     data-text-wrap={
-                      settingsTextWrap === "None"
-                        ? "none"
+                      settingsTextWrap === "Normal"
+                        ? "auto"
                         : settingsTextWrap === "Text Wrap Balance"
                         ? "balance"
                         : settingsTextWrap === "Text Wrap Pretty"
@@ -334,7 +336,7 @@ export function HeadlineContentBlock({
                           ? "95"
                           : headlineHeadlineTextSize === "Medium"
                           ? "76"
-                          : headlineHeadlineTextSize === "None"
+                          : headlineHeadlineTextSize === "Normal"
                           ? "60"
                           : headlineHeadlineTextSize === "Small"
                           ? "48"
@@ -359,7 +361,7 @@ export function HeadlineContentBlock({
                           ? "36"
                           : headlineHeadlineTextSize === "Medium"
                           ? "32"
-                          : headlineHeadlineTextSize === "None"
+                          : headlineHeadlineTextSize === "Normal"
                           ? "28"
                           : headlineHeadlineTextSize === "Small"
                           ? "24"
@@ -379,11 +381,13 @@ export function HeadlineContentBlock({
                           : "bold"
                       }
                       data-text-wrap={
-                        headlineHeadlineWrapping
-                          ? "wrap-headline"
-                          : !headlineHeadlineWrapping
-                          ? "no-wrapping"
-                          : "wrap-headline"
+                        settingsTextWrap === "Normal"
+                          ? "auto"
+                          : settingsTextWrap === "Text Wrap Balance"
+                          ? "balance"
+                          : settingsTextWrap === "Text Wrap Pretty"
+                          ? "pretty"
+                          : "auto"
                       }
                       tag={headlineHeadlineTag}
                     >
@@ -412,8 +416,8 @@ export function HeadlineContentBlock({
                           : "none"
                       }
                       data-text-wrap={
-                        settingsTextWrap === "None"
-                          ? "none"
+                        settingsTextWrap === "Normal"
+                          ? "auto"
                           : settingsTextWrap === "Text Wrap Balance"
                           ? "balance"
                           : settingsTextWrap === "Text Wrap Pretty"

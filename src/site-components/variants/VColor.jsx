@@ -50,7 +50,7 @@ export function VColor({
             : "alpine-linen"
         }
         data-color-mode={
-          colorMode === "None"
+          colorMode === "Base"
             ? "normal"
             : colorMode === "Inverse"
             ? "inverse"
@@ -59,7 +59,7 @@ export function VColor({
             : "normal"
         }
         data-color-style={
-          colorStyle === "None"
+          colorStyle === "Base"
             ? "filled"
             : colorStyle === "Outline"
             ? "outline"

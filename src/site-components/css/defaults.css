@@ -116,6 +116,12 @@
   .w-popover[popover]:not(:popover-open) {
     display: none;
   }
+  .w-modal:not([open]):not([popover]) {
+    display: none;
+  }
+  .w-modal[popover]:not(:popover-open) {
+    display: none;
+  }
   html[data-w-dynpage] [data-w-cloak] {
     color: transparent !important;
   }

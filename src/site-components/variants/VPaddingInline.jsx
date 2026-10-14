@@ -55,7 +55,7 @@ export function VPaddingInline({
             ? "lg"
             : padding === "Medium"
             ? "md"
-            : padding === "None"
+            : padding === "Normal"
             ? "base"
             : padding === "Small"
             ? "sm"

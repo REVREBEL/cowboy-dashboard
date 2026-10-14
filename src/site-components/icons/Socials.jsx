@@ -41,7 +41,7 @@ export function Socials({
           rules: [
             {
               condition: every([
-                applyPredicate(variant)(styleVariantIsAny(["None"])),
+                applyPredicate(variant)(styleVariantIsAny(["Instagram"])),
               ]),
               output: true,
             },
@@ -77,7 +77,7 @@ export function Socials({
               condition: every([
                 applyPredicate(variant)(
                   styleVariantIsAny([
-                    "None",
+                    "Instagram",
                     "Linkedin",
                     "Youtube",
                     "Trip Advisor",
@@ -105,7 +105,7 @@ export function Socials({
               condition: every([
                 applyPredicate(variant)(
                   styleVariantIsAny([
-                    "None",
+                    "Instagram",
                     "Facebook",
                     "Youtube",
                     "Trip Advisor",
@@ -133,7 +133,7 @@ export function Socials({
               condition: every([
                 applyPredicate(variant)(
                   styleVariantIsAny([
-                    "None",
+                    "Instagram",
                     "Facebook",
                     "Linkedin",
                     "Trip Advisor",
@@ -160,7 +160,12 @@ export function Socials({
             {
               condition: every([
                 applyPredicate(variant)(
-                  styleVariantIsAny(["None", "Facebook", "Linkedin", "Youtube"])
+                  styleVariantIsAny([
+                    "Instagram",
+                    "Facebook",
+                    "Linkedin",
+                    "Youtube",
+                  ])
                 ),
               ]),
 

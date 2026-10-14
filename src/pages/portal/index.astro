@@ -3,13 +3,37 @@
 
 
 
+
 ---
 import MainLayout from '../../layouts/main.astro';
-import { COLLECTIONS, getCollectionsByComplexity } from '../../lib/collections-config';
+import { COLLECTIONS } from '../../lib/collections-config';
+import { getLiveCollections } from '../../lib/get-live-collections';
+import { WebflowClient } from 'webflow-api';
 import { baseUrl } from '../../lib/base-url';
 
 const pageClass = 'portal-home';
-const collections = COLLECTIONS;
+
+const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
+              import.meta.env.WEBFLOW_CMS_API_TOKEN;
+const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
+const siteId = Astro.locals?.runtime?.env?.WEBFLOW_SITE_ID || import.meta.env.WEBFLOW_SITE_ID;
+
+let collections = COLLECTIONS;
+
+if (token && siteId) {
+  try {
+    const client = new WebflowClient({
+      accessToken: token,
+      ...(apiHost && { baseUrl: apiHost })
+    });
+    const live = await getLiveCollections(client, siteId);
+    if (live.length > 0) {
+      collections = live;
+    }
+  } catch (e) {
+    console.error('Falling back to static collections config:', e);
+  }
+}
 ---
 
 <MainLayout pageClass="portal-home">
@@ -77,6 +101,7 @@ const collections = COLLECTIONS;
     font-weight: 500;
   }
 </style>
+
 
 
 

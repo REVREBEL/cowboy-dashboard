@@ -278,6 +278,20 @@
   font-display: swap;
 }
 @font-face {
+  font-family: "Cowboy Simple Icons";
+  src: url("https://cdn.prod.website-files.com/6aaa2497c8ea366207beba30/6ac498d602dee453e8e62539_cowboy.woff2")
+      format("woff2"),
+    url("https://cdn.prod.website-files.com/6aaa2497c8ea366207beba30/6ac498d6b24779742d0bb77d_cowboy.eot")
+      format("embedded-opentype"),
+    url("https://cdn.prod.website-files.com/6aaa2497c8ea366207beba30/6ac498d6e7a84f6e686fc6a2_cowboy.woff")
+      format("woff"),
+    url("https://cdn.prod.website-files.com/6aaa2497c8ea366207beba30/6ac498d6e7a84f6e686fc6b4_cowboy.ttf")
+      format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
   font-family: "Bianco Sans";
   src: url("https://cdn.prod.website-files.com/6aaa2497c8ea366207beba30/6aad75c272abd73185a9dca5_Bianco%20Sans%20Regular.ttf")
     format("truetype");

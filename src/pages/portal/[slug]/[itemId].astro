@@ -3,16 +3,13 @@
 
 
 
-
 ---
 import MainLayout from '../../../layouts/main.astro';
 import { COLLECTIONS } from '../../../lib/collections-config';
 import { WebflowClient } from 'webflow-api';
 import ItemEditor from '../../../components/ItemEditor';
-import { getFieldsByGroup } from '../../../lib/field-groups';
 import { baseUrl } from '../../../lib/base-url';
 import { Toaster } from '../../../components/ui/sonner';
-import { TooltipProvider } from '../../../components/ui/tooltip';
 
 const { slug, itemId } = Astro.params;
 const pageClass = 'portal-item';
@@ -83,10 +80,13 @@ if (item) {
   });
 
   // Log reference fields specifically
-  const refFields = fields.filter(f => f.type === 'ItemRef' || f.type === 'ItemRefSet');
+  const refFields = fields.filter(f => f.type === 'Reference' || f.type === 'MultiReference');
   console.log('Reference fields:', refFields.map(f => f.slug));
   refFields.forEach(field => {
-    console.log(`  ${field.slug} value:`, item.fieldData[field.slug]);
+    const slug = field.slug;
+    if (slug) {
+      console.log(`  ${slug} value:`, (item.fieldData as Record<string, unknown>)[slug]);
+    }
   });
 }
 
@@ -136,17 +136,15 @@ if (!item || !collectionDetails) {
           </p>
         </div>
       ) : (
-        <TooltipProvider client:only="react">
-          <ItemEditor 
-            client:only="react"
-            collectionId={collection.id}
-            collectionSlug={collection.slug}
-            itemId={itemId!}
-            fields={collectionDetails.fields}
-            initialData={item.fieldData}
-            baseUrl={baseUrl}
-          />
-        </TooltipProvider>
+        <ItemEditor 
+          client:only="react"
+          collectionId={collection.id}
+          collectionSlug={collection.slug}
+          itemId={itemId!}
+          fields={collectionDetails.fields as any}
+          initialData={item.fieldData}
+          baseUrl={baseUrl}
+        />
       )}
     </main>
   </div>
@@ -160,6 +158,9 @@ if (!item || !collectionDetails) {
     letter-spacing: -0.015em;
   }
 </style>
+
+
+
 
 
 

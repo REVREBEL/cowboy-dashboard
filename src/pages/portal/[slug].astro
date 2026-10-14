@@ -3,6 +3,7 @@
 
 
 
+
 ---
 import MainLayout from '../../layouts/main.astro';
 import { COLLECTIONS } from '../../lib/collections-config';
@@ -13,8 +14,44 @@ import SyncRoomPhotos from '../../components/SyncRoomPhotos';
 const { slug } = Astro.params;
 const pageClass = 'portal-collection';
 
-// Get collection from static config
-const collection = COLLECTIONS.find(c => c.slug === slug);
+// Get token from environment - ONLY use WEBFLOW_CMS_API_TOKEN
+const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
+              import.meta.env.WEBFLOW_CMS_API_TOKEN;
+const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
+const siteId = Astro.locals?.runtime?.env?.WEBFLOW_SITE_ID || import.meta.env.WEBFLOW_SITE_ID;
+
+if (!token) {
+  console.error('No API token found');
+}
+
+// Initialize client
+const client = new WebflowClient({
+  accessToken: token,
+  ...(apiHost && { baseUrl: apiHost })
+});
+
+// Get collection from static config first...
+let collection: { id: string; name: string; slug: string; sortField?: string; singularName?: string } | undefined =
+  COLLECTIONS.find(c => c.slug === slug);
+
+// ...and fall back to a live lookup so newly created collections work without
+// needing a code change to collections-config.ts.
+if (!collection && token && siteId) {
+  try {
+    const { collections } = await client.collections.list(siteId);
+    const liveMatch = collections?.find(c => c.slug === slug);
+    if (liveMatch) {
+      collection = {
+        id: liveMatch.id,
+        name: liveMatch.displayName || liveMatch.slug || 'Untitled collection',
+        slug: liveMatch.slug || slug!,
+        singularName: liveMatch.singularName
+      };
+    }
+  } catch (e) {
+    console.error('Live collection lookup failed:', e);
+  }
+}
 
 if (!collection) {
   console.error(`Collection not found for slug: ${slug}`);
@@ -22,22 +59,6 @@ if (!collection) {
 }
 
 console.log(`Loading collection: ${collection.name} (${collection.id})`);
-
-// Get token from environment - ONLY use WEBFLOW_CMS_API_TOKEN
-const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || 
-              import.meta.env.WEBFLOW_CMS_API_TOKEN;
-
-if (!token) {
-  console.error('No API token found');
-}
-
-const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-
-// Initialize client
-const client = new WebflowClient({
-  accessToken: token,
-  ...(apiHost && { baseUrl: apiHost })
-});
 
 // Fetch items
 let items: any[] = [];
@@ -53,11 +74,12 @@ try {
   });
   items = itemsResponse.items || [];
   
-  // Sort items client-side for room types by their sort field
-  if (slug === 'room-types') {
+  // Sort items client-side using the collection's configured sort field, if any
+  if (collection.sortField) {
+    const sortField = collection.sortField;
     items.sort((a, b) => {
-      const sortA = a.fieldData?.sort ?? 999999;
-      const sortB = b.fieldData?.sort ?? 999999;
+      const sortA = a.fieldData?.[sortField] ?? 999999;
+      const sortB = b.fieldData?.[sortField] ?? 999999;
       return sortA - sortB;
     });
   }
@@ -102,6 +124,17 @@ try {
               placeholder="Search..."
               class="px-4 py-2.5 text-sm font-body border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] flex-1 sm:w-64"
             />
+            {collection.sortField && (
+              <a
+                href={`${baseUrl}/portal/${slug}/reorder`}
+                class="inline-flex items-center justify-center gap-2 border border-input bg-background text-foreground px-4 py-2.5 text-sm font-button hover:bg-muted/50 transition-colors min-h-[44px] w-full sm:w-auto"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 5h10M3 8h10M3 11h10" stroke-linecap="round"/>
+                </svg>
+                Reorder
+              </a>
+            )}
             <a 
               href={`${baseUrl}/portal/${slug}/new`}
               class="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 text-sm font-button hover:bg-primary/90 transition-colors min-h-[44px] w-full sm:w-auto"
@@ -337,6 +370,11 @@ try {
     });
   });
 </script>
+
+
+
+
+
 
 
 

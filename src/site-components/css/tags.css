@@ -282,6 +282,14 @@
   #w-node-_80b8a614-c127-5cbf-c0a6-30b268acdd91-f2bd6280 {
     align-self: stretch;
   }
+  #w-node-_6bc8dbf3-3a5e-f468-75b0-327b7ee850dc-7ee850d8 {
+    align-self: center;
+    justify-self: center;
+  }
+  #w-node-_6bc8dbf3-3a5e-f468-75b0-327b7ee850de-7ee850d8 {
+    justify-self: center;
+    align-self: center;
+  }
   #w-node-_51d61da1-d649-17cc-bd9f-29e71bcfb48e-1bcfb48c {
     align-self: center;
     justify-self: center;
@@ -308,48 +316,6 @@
   }
   #w-node-fea7a29b-2805-e0a0-c24f-f72ddc3b1ad4-7c57ac56 {
     align-self: end;
-  }
-  @media screen and (min-width: 1280px) {
-    body {
-      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1rem;
-      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
-      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
-        sans-serif;
-      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
-        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
-      );
-      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
-      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
-      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
-      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
-    }
-  }
-  @media screen and (min-width: 1440px) {
-    body {
-      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1rem;
-      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
-      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
-        sans-serif;
-      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
-        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
-      );
-      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
-    }
-  }
-  @media screen and (min-width: 1920px) {
-    body {
-      --_sizing---spacing--2x\<deleted\|variable-32bb8acd-6997-4bf5-2aa8-e104fd8ce7c9\>: 2rem;
-      --_sizing---spacing--3x\<deleted\|variable-de76512c-0afb-a75b-9562-9519cebd3102\>: 3rem;
-      --_sizing---spacing--1-5x\<deleted\|variable-5416df92-8c7e-bd3a-ae0e-e609f042dcb7\>: 1.5rem;
-      --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 1rem;
-      --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
-      --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
-        sans-serif;
-      --_typography-2---text-color--text-accent-on-inverse\<deleted\|variable-0fa2bbd5-c7d6-4348-d92f-b13d8b0ce8cb\>: var(
-        --_base-collection---core-colors--secondary\<deleted\|variable-c51f7717-ba27-0c2a-e7c9-393b1e90767f\>
-      );
-      --_typography-2---font-weights--font-weight-regular\<deleted\|variable-94a8713b-b379-825f-1cbc-7a3154839397\>: 400;
-    }
   }
   @media screen and (max-width: 991px) {
     body {
@@ -394,7 +360,6 @@
       --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
         --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
       );
-      --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
       --_typography-2---text-normal--text-text-size\<deleted\|variable-82b490bb-d578-aa91-8d95-70e33cf0a1c1\>: 0.9rem;
       --_typography-2---body-typography--base-font-weight-light\<deleted\|variable-dece3067-1c33-5084-9300-dfa7a245d0dc\>: 300;
       --_typography-2---eyebrows--eyebrow-font\<deleted\|variable-d32d4a60-ccb8-a9f2-18d0-537b0c5a3be7\>: "Fira Code",
@@ -484,7 +449,6 @@
       --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
         --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
       );
-      --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
     }
     h1 {
       font-size: 2.5rem;
@@ -563,7 +527,6 @@
       --_buttons---button-primary--btn-primary-bg-hover\<deleted\|variable-1f83dae1-2614-d83f-3e99-c6c0cf2b84ab\>: var(
         --_base-collection---core-colors--inverse\<deleted\|variable-3d601158-f331-6233-e5e2-3e5103c3658b\>
       );
-      --_buttons---button-globals--btn-radius\<deleted\|variable-dd4e87f6-2667-6122-fa7c-303aa01c2c34\>: 0.625rem;
     }
     h1 {
       font-size: 2.5rem;

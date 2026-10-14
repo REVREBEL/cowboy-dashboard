@@ -1,4 +1,6 @@
 
+
+
 // Static collections configuration
 // This avoids needing sites:read scope
 
@@ -8,6 +10,9 @@ export interface CollectionConfig {
   slug: string;
   singularName: string;
   complexity: 'simple' | 'core' | 'complex';
+  // The slug of a Number field used to manually order items in this collection.
+  // When set, the portal exposes a drag-and-drop reorder UI for the collection.
+  sortField?: string;
 }
 
 export const COLLECTIONS: CollectionConfig[] = [
@@ -44,7 +49,8 @@ export const COLLECTIONS: CollectionConfig[] = [
     name: 'Room Types',
     slug: 'room-types',
     singularName: 'Room Type',
-    complexity: 'complex'
+    complexity: 'complex',
+    sortField: 'sort'
   },
   {
     id: '6abc8175a7bbdc92fa9e6599',
@@ -72,7 +78,16 @@ export const COLLECTIONS: CollectionConfig[] = [
     name: 'Instagrams',
     slug: 'instagram',
     singularName: 'Instagram',
-    complexity: 'core'
+    complexity: 'core',
+    sortField: 'sort'
+  },
+  {
+    id: '6ac364287c8782e8e653075e',
+    name: 'Add Ons',
+    slug: 'add-ons',
+    singularName: 'Add On',
+    complexity: 'simple',
+    sortField: 'sort'
   }
 ];
 
@@ -88,7 +103,7 @@ export function getCollectionById(id: string): CollectionConfig | undefined {
 export function getCollectionsByComplexity() {
   return {
     simple: COLLECTIONS.filter(c => 
-      ['menu-items', 'amenities'].includes(c.slug) && c.complexity === 'simple'
+      ['menu-items', 'amenities', 'add-ons'].includes(c.slug) && c.complexity === 'simple'
     ),
     medium: COLLECTIONS.filter(c => 
       ['locations', 'buildings', 'instagram', 'outlets'].includes(c.slug) && c.complexity === 'core'
@@ -98,4 +113,6 @@ export function getCollectionsByComplexity() {
     )
   };
 }
+
+
 

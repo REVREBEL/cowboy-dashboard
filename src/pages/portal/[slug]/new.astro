@@ -1,3 +1,5 @@
+
+
 ---
 import MainLayout from '../../../layouts/main.astro';
 import { COLLECTIONS } from '../../../lib/collections-config';
@@ -5,7 +7,6 @@ import { WebflowClient } from 'webflow-api';
 import ItemEditor from '../../../components/ItemEditor';
 import { baseUrl } from '../../../lib/base-url';
 import { Toaster } from '../../../components/ui/sonner';
-import { TooltipProvider } from '../../../components/ui/tooltip';
 
 const { slug } = Astro.params;
 const pageClass = 'portal-item-new';
@@ -60,7 +61,7 @@ const initialData: Record<string, any> = {
 
 // Set default values for boolean fields
 fields.forEach(field => {
-  if (field.type === 'Bool' || field.type === 'Switch') {
+  if (field.type === 'Switch' && field.slug) {
     initialData[field.slug] = false;
   }
 });
@@ -111,17 +112,15 @@ if (!collectionDetails) {
           </p>
         </div>
       ) : (
-        <TooltipProvider client:only="react">
-          <ItemEditor 
-            client:only="react"
-            collectionId={collection.id}
-            collectionSlug={collection.slug}
-            itemId="new"
-            fields={collectionDetails.fields}
-            initialData={initialData}
-            baseUrl={baseUrl}
-          />
-        </TooltipProvider>
+        <ItemEditor 
+          client:only="react"
+          collectionId={collection.id}
+          collectionSlug={collection.slug}
+          itemId="new"
+          fields={collectionDetails.fields as any}
+          initialData={initialData}
+          baseUrl={baseUrl}
+        />
       )}
     </main>
   </div>
@@ -135,3 +134,6 @@ if (!collectionDetails) {
     letter-spacing: -0.015em;
   }
 </style>
+
+
+

@@ -31,7 +31,7 @@ export function VButtonSize({ size = "Normal", vButtonSize }) {
             ? "lg"
             : size === "Medium"
             ? "md"
-            : size === "None"
+            : size === "Normal"
             ? "base"
             : size === "Small"
             ? "sm"

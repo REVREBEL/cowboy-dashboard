@@ -1,15 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, ExternalLink, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { uploadImageFile, type ImageData } from '../lib/image-upload-client';
 import { baseUrl } from '../lib/base-url';
-
-interface ImageData {
-  fileId?: string;
-  url?: string;
-  alt?: string;
-}
 
 interface ImageUploadProps {
   value: ImageData | null;
@@ -55,41 +50,11 @@ export default function ImageUpload({
     setError(null);
 
     try {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
-      if (!validTypes.includes(file.type)) {
-        throw new Error('Invalid file type. Please upload JPG, PNG, GIF, SVG, or WebP.');
-      }
-
-      // Validate file size (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('File too large. Maximum size is 10MB.');
-      }
-
-      // Create FormData
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Upload to our API endpoint
-      const response = await fetch(`${baseUrl}/api/cms/upload-image`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
-        throw new Error(errorData.error || `Upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      // Update the value with the uploaded image data
+      const img = await uploadImageFile(file, baseUrl);
       onChange({
-        fileId: data.fileId,
-        url: data.url,
+        ...img,
         alt: altText || label,
       });
-
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Upload failed');
@@ -246,3 +211,5 @@ export default function ImageUpload({
     </div>
   );
 }
+
+

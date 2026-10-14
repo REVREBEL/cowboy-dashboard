@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -8,14 +7,20 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { toast } from 'sonner';
-import { Info } from 'lucide-react';
+import { Info, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { baseUrl } from '../lib/base-url';
 import { organizeFieldsByGroup } from '../lib/field-groups';
-import { getFieldRows, getLayoutClasses, type FieldRow } from '../lib/field-layouts';
+import { getFieldRows, getLayoutClasses } from '../lib/field-layouts';
 import { COLLECTIONS } from '../lib/collections-config';
 import ImageUpload from './ImageUpload';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import MultiImageField from './MultiImageField';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 interface Field {
   id: string;
@@ -23,6 +28,7 @@ interface Field {
   displayName: string;
   type: string;
   required: boolean;
+  isRequired?: boolean;
   helpText?: string;
   validations?: {
     singleLine?: boolean;
@@ -31,7 +37,17 @@ interface Field {
     min?: number;
     max?: number;
     precision?: number;
+    options?: Array<{ id: string; name: string }>;
+    collectionId?: string;
   };
+}
+
+interface ReferenceOption {
+  id: string;
+  name: string;
+  // Raw option id of the referenced item's `type` field (only populated for
+  // collections that have one, e.g. the shared Amenities collection).
+  type?: string | null;
 }
 
 interface ItemEditorProps {
@@ -60,6 +76,25 @@ const COLOR_MAP: Record<string, string> = {
   'oxblood': '#69253a',
   'oxidized-teal': '#236b7d',
 };
+
+// The "Features & Amenities" and "Policies" fields on Room Types both
+// reference the same shared Amenities collection, which has a `type`
+// option field (Feature / Amenity / Policy / Accessibility / ...). We only
+// want Policies to show Policy-typed items, and Features & Amenities to
+// show everything *except* Policy-typed items.
+const AMENITIES_COLLECTION_ID = '6abc8175a7bbdc92fa9e6599';
+const AMENITY_POLICY_TYPE_ID = '7c93dc1078791efcf798aff5800d16a3';
+
+function filterReferenceOptionsForField(field: Field, options: ReferenceOption[]): ReferenceOption[] {
+  if (field.validations?.collectionId !== AMENITIES_COLLECTION_ID) return options;
+  if (field.slug === 'policies') {
+    return options.filter(o => o.type === AMENITY_POLICY_TYPE_ID);
+  }
+  if (field.slug === 'features-amenities') {
+    return options.filter(o => o.type !== AMENITY_POLICY_TYPE_ID);
+  }
+  return options;
+}
 
 // Helper component for field labels with optional tooltip
 function FieldLabel({ 
@@ -99,13 +134,23 @@ export default function ItemEditor({
   collectionId,
   collectionSlug,
   itemId, 
-  fields, 
+  fields: rawFields, 
   initialData,
   baseUrl 
 }: ItemEditorProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [referenceOptions, setReferenceOptions] = useState<Record<string, ReferenceOption[]>>({});
+  const [referenceLoading, setReferenceLoading] = useState<Record<string, boolean>>({});
+
+  // Webflow's API returns `isRequired`, but older/local types used
+  // `required`. Normalize here so the rest of the component (and the
+  // required-field validation below) works no matter which shape comes in.
+  const fields = React.useMemo(
+    () => rawFields.map(f => ({ ...f, required: Boolean(f.required ?? f.isRequired) })),
+    [rawFields]
+  );
 
   // Initialize form data with initial values
   useEffect(() => {
@@ -113,6 +158,65 @@ export default function ItemEditor({
       setFormData(initialData);
     }
   }, [initialData]);
+
+  // Fetch display names for Reference / MultiReference fields so we can
+  // show readable item names instead of raw Webflow item IDs.
+  useEffect(() => {
+    const refCollectionIds = Array.from(
+      new Set(
+        fields
+          .filter(f => (f.type === 'Reference' || f.type === 'MultiReference') && f.validations?.collectionId)
+          .map(f => f.validations!.collectionId as string)
+      )
+    );
+
+    refCollectionIds.forEach(async (refCollectionId) => {
+      setReferenceOptions(prev => {
+        if (prev[refCollectionId]) return prev;
+        return prev;
+      });
+
+      setReferenceLoading(prevLoading => {
+        if (prevLoading[refCollectionId]) return prevLoading;
+        // Kick off the fetch (fire and forget) the first time we see this collection id
+        (async () => {
+          try {
+            const items: ReferenceOption[] = [];
+            const limit = 100;
+            let offset = 0;
+            let total = Infinity;
+
+            while (offset < total) {
+              const res = await fetch(`${baseUrl}/api/cms/${refCollectionId}?limit=${limit}&offset=${offset}`);
+              if (!res.ok) break;
+              const data = await res.json() as {
+                items?: Array<{ id: string; fieldData?: { name?: string; type?: string | null } }>;
+                pagination?: { total?: number };
+              };
+              const pageItems = data.items || [];
+              pageItems.forEach(it => {
+                items.push({ id: it.id, name: it.fieldData?.name || it.id, type: it.fieldData?.type ?? null });
+              });
+              total = data.pagination?.total ?? pageItems.length;
+              offset += limit;
+              if (pageItems.length === 0) break;
+            }
+
+            items.sort((a, b) => a.name.localeCompare(b.name));
+            setReferenceOptions(prev => ({ ...prev, [refCollectionId]: items }));
+          } catch (err) {
+            console.error('Failed to load reference options for collection', refCollectionId, err);
+            setReferenceOptions(prev => ({ ...prev, [refCollectionId]: [] }));
+          } finally {
+            setReferenceLoading(prev => ({ ...prev, [refCollectionId]: false }));
+          }
+        })();
+
+        return { ...prevLoading, [refCollectionId]: true };
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fields, baseUrl]);
 
   // Generate slug from name
   const generateSlug = (name: string): string => {
@@ -122,19 +226,6 @@ export default function ItemEditor({
       .replace(/[^\w\s-]/g, '') // Remove special characters
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
-  };
-
-  const handleInputChange = (fieldSlug: string, value: any) => {
-    setFormData(prev => {
-      const updated = { ...prev, [fieldSlug]: value };
-      
-      // Auto-generate slug when name changes
-      if (fieldSlug === 'name' && typeof value === 'string') {
-        updated.slug = generateSlug(value);
-      }
-      
-      return updated;
-    });
   };
 
   const handleChange = (slug: string, value: any) => {
@@ -156,7 +247,7 @@ export default function ItemEditor({
     setError(null);
 
     // Validate required fields
-    const requiredFields = fields.filter(f => f.isRequired);
+    const requiredFields = fields.filter(f => f.required);
     const missingFields = requiredFields.filter(f => {
       const value = formData[f.slug];
       return value === undefined || value === null || value === '';
@@ -189,11 +280,11 @@ export default function ItemEditor({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
         throw new Error(errorData.error || `Failed to save: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      const result = await response.json() as { id?: string };
       console.log('Save successful:', result);
       
       if (isNewItem) {
@@ -222,48 +313,6 @@ export default function ItemEditor({
         description: err instanceof Error ? err.message : 'An error occurred',
       });
     } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const isNew = itemId === 'new';
-      const url = isNew
-        ? `${baseUrl}/api/cms/${collectionId}`
-        : `${baseUrl}/api/cms/${collectionId}/${itemId}`;
-
-      const method = isNew ? 'POST' : 'PATCH';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fieldData: formData }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Failed to save item');
-      }
-
-      const savedItem = await response.json();
-      
-      // Publish the item after saving
-      const publishResponse = await fetch(`${baseUrl}/api/cms/${collectionId}/${savedItem.id}/publish`, {
-        method: 'POST',
-      });
-
-      if (!publishResponse.ok) {
-        console.error('Failed to publish item, but save was successful');
-      }
-
-      // Redirect to the list page
-      window.location.href = `${baseUrl}/portal/${collectionSlug}`;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
       setIsSaving(false);
     }
   };
@@ -453,7 +502,38 @@ export default function ItemEditor({
           </div>
         );
 
+      case 'MultiImage':
+        // Multi-image field (array of images) - thumbnail grid with edit modal
+        const multiImageValue = Array.isArray(value) ? value : [];
+        return (
+          <MultiImageField
+            key={field.slug}
+            value={multiImageValue}
+            onChange={(newValue) => handleChange(field.slug, newValue)}
+            label={field.displayName}
+            required={field.required}
+            helpText={field.helpText}
+            baseUrl={baseUrl}
+          />
+        );
+
       case 'Image':
+        // Check if this is a multi-image field (array of images)
+        if (Array.isArray(value)) {
+          return (
+            <MultiImageField
+              key={field.slug}
+              value={value}
+              onChange={(newValue) => handleChange(field.slug, newValue)}
+              label={field.displayName}
+              required={field.required}
+              helpText={field.helpText}
+              baseUrl={baseUrl}
+            />
+          );
+        }
+        
+        // Single image field
         return (
           <ImageUpload
             key={field.slug}
@@ -462,13 +542,11 @@ export default function ItemEditor({
             label={field.displayName}
             required={field.required}
             helpText={field.helpText}
-            collectionId={collectionId}
-            baseUrl={baseUrl}
           />
         );
 
       case 'Option':
-        const options = field.validations?.options || [];
+        const options: Array<{ id: string; name: string }> = field.validations?.options || [];
         const isColorField = field.slug === 'button-color' || field.slug === 'text-color';
         
         return (
@@ -480,7 +558,7 @@ export default function ItemEditor({
               helpText={field.helpText}
             />
             <div className={isColorField ? "grid grid-cols-2 sm:grid-cols-3 gap-2" : "flex flex-wrap gap-2"}>
-              {options.map((option) => {
+              {options.map((option: { id: string; name: string }) => {
                 const normalizedName = option.name.toLowerCase().replace(/\s+/g, '-');
                 const colorHex = isColorField ? COLOR_MAP[normalizedName] : null;
                 
@@ -509,10 +587,24 @@ export default function ItemEditor({
           </div>
         );
 
-      case 'Reference':
-      case 'MultiReference':
-        const refValue = formData[field.slug];
-        const displayName = refValue || 'Not set';
+      case 'Reference': {
+        const refCollectionId = field.validations?.collectionId;
+        const rawRefOptions = refCollectionId ? referenceOptions[refCollectionId] || [] : [];
+        const typeFilteredOptions = filterReferenceOptionsForField(field, rawRefOptions);
+        const isLoadingOptions = refCollectionId ? !!referenceLoading[refCollectionId] : false;
+        const currentId: string = formData[field.slug] || '';
+        const NONE_VALUE = '__none__';
+
+        // Ensure the currently selected id always has a matching option,
+        // even before the async reference-options fetch resolves. Without
+        // this, Radix's controlled Select can fail to reflect a valid
+        // value if no <SelectItem> matches it yet.
+        const currentIdKnown = currentId && typeFilteredOptions.some(o => o.id === currentId);
+        const currentIdFromRaw = currentId ? rawRefOptions.find(o => o.id === currentId) : undefined;
+        const refOptions = currentId && !currentIdKnown
+          ? [{ id: currentId, name: currentIdFromRaw?.name || (isLoadingOptions ? 'Loading…' : currentId) }, ...typeFilteredOptions]
+          : typeFilteredOptions;
+
         return (
           <div key={field.slug} className="space-y-1.5">
             <FieldLabel 
@@ -521,16 +613,108 @@ export default function ItemEditor({
               isRequired={field.required}
               helpText={field.helpText}
             />
-            <Input
-              value={displayName}
-              disabled
-              className="bg-muted"
-            />
-            <p className="text-xs text-muted-foreground">
-              Reference fields are read-only. ID: {refValue || 'none'}
-            </p>
+            <Select
+              value={currentId || NONE_VALUE}
+              onValueChange={(val) => {
+                // Radix's hidden native <select> (used for HTML form
+                // compatibility) remounts whenever the set of registered
+                // <SelectItem>s changes (e.g. when async reference options
+                // finish loading). On remount it force-syncs its value and
+                // dispatches a synthetic "change" event before the DOM has
+                // the matching <option>, which can report an empty string.
+                // Radix disallows real <Select.Item value=""> (it throws),
+                // so a genuine user selection can never produce val === "".
+                // Any empty-string call is therefore this internal sync
+                // glitch, not a real selection — ignore it.
+                if (val === '') return;
+                handleChange(field.slug, val === NONE_VALUE ? null : val);
+              }}
+            >
+              <SelectTrigger id={field.slug} className="font-body w-full">
+                <SelectValue placeholder={isLoadingOptions ? 'Loading...' : 'Select an option'}>
+                  {refOptions.find(o => o.id === currentId)?.name || (currentId ? currentId : 'Not set')}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE_VALUE}>Not set</SelectItem>
+                {refOptions.map(option => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         );
+      }
+
+      case 'MultiReference': {
+        const refCollectionId = field.validations?.collectionId;
+        const rawRefOptions = refCollectionId ? referenceOptions[refCollectionId] || [] : [];
+        const typeFilteredOptions = filterReferenceOptionsForField(field, rawRefOptions);
+        const isLoadingOptions = refCollectionId ? !!referenceLoading[refCollectionId] : false;
+        const selectedIds: string[] = Array.isArray(formData[field.slug]) ? formData[field.slug] : [];
+
+        // Make sure every currently-selected id renders as a chip, even if
+        // it hasn't shown up in the async-loaded options list yet.
+        const missingSelected = selectedIds
+          .filter(id => !rawRefOptions.some(o => o.id === id))
+          .map(id => ({ id, name: isLoadingOptions ? 'Loading…' : id }));
+
+        // Keep any already-selected items visible even if they fall outside
+        // the current type filter (e.g. legacy data), so users can still
+        // see and un-select them.
+        const selectedOutsideFilter = rawRefOptions.filter(
+          o => selectedIds.includes(o.id) && !typeFilteredOptions.some(t => t.id === o.id)
+        );
+
+        const refOptions = [...missingSelected, ...selectedOutsideFilter, ...typeFilteredOptions];
+
+        const toggleId = (id: string) => {
+          const updated = selectedIds.includes(id)
+            ? selectedIds.filter(i => i !== id)
+            : [...selectedIds, id];
+          handleChange(field.slug, updated);
+        };
+
+        return (
+          <div key={field.slug} className="space-y-1.5">
+            <FieldLabel 
+              htmlFor={field.slug}
+              displayName={field.displayName}
+              isRequired={field.required}
+              helpText={field.helpText}
+            />
+            <div className="flex flex-wrap gap-2 border border-border p-3 bg-background min-h-[3rem]">
+              {isLoadingOptions && refOptions.length === 0 && (
+                <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading options...
+                </span>
+              )}
+              {!isLoadingOptions && refOptions.length === 0 && (
+                <span className="text-sm text-muted-foreground font-body">No options available</span>
+              )}
+              {refOptions.map(option => {
+                const isSelected = selectedIds.includes(option.id);
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => toggleId(option.id)}
+                    className={`px-3 py-1.5 border font-body text-sm transition-colors ${
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background text-foreground border-border hover:bg-muted'
+                    }`}
+                  >
+                    {option.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
 
       default:
         return (
@@ -549,9 +733,9 @@ export default function ItemEditor({
 
   // Organize fields by group
   const organizedFields = organizeFieldsByGroup(collectionSlug, fields);
-  
-  console.log('Organized fields:', Object.keys(organizedFields));
-  console.log('Field groups:', Object.entries(organizedFields).map(([group, fields]) => `${group}: ${fields.length}`));
+
+  console.log('Organized fields:', organizedFields.map(g => g.name));
+  console.log('Field groups:', organizedFields.map(g => `${g.name}: ${g.fields.length}`));
 
   // Early return if no fields
   if (!fields || fields.length === 0) {
@@ -701,6 +885,33 @@ export default function ItemEditor({
       </form>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

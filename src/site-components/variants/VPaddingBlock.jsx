@@ -60,7 +60,7 @@ export function VPaddingBlock({
             ? "lg"
             : blockPadding === "Medium"
             ? "md"
-            : blockPadding === "None"
+            : blockPadding === "Normal"
             ? "base"
             : blockPadding === "Small"
             ? "sm"

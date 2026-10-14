@@ -1,0 +1,85 @@
+---
+import MainLayout from '../../../layouts/main.astro';
+import { COLLECTIONS } from '../../../lib/collections-config';
+import { WebflowClient } from 'webflow-api';
+import ReorderList from '../../../components/ReorderList';
+import { baseUrl } from '../../../lib/base-url';
+import { Toaster } from '../../../components/ui/sonner';
+
+const { slug } = Astro.params;
+const pageClass = 'portal-reorder';
+
+const collection = COLLECTIONS.find((c) => c.slug === slug);
+
+if (!collection) {
+  return Astro.redirect(`${baseUrl}/portal`);
+}
+
+// Only collections with a configured sortField support reordering
+if (!collection.sortField) {
+  return Astro.redirect(`${baseUrl}/portal/${slug}`);
+}
+
+const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
+              import.meta.env.WEBFLOW_CMS_API_TOKEN;
+const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
+
+const client = new WebflowClient({
+  accessToken: token,
+  ...(apiHost && { baseUrl: apiHost })
+});
+
+let items: any[] = [];
+let error: string | null = null;
+
+try {
+  const itemsResponse = await client.collections.items.listItemsLive(collection.id, {
+    limit: 100,
+    offset: 0
+  });
+  items = itemsResponse.items || [];
+
+  const sortField = collection.sortField;
+  items.sort((a, b) => {
+    const sortA = a.fieldData?.[sortField] ?? 999999;
+    const sortB = b.fieldData?.[sortField] ?? 999999;
+    return sortA - sortB;
+  });
+} catch (err: any) {
+  console.error('Error fetching items for reorder:', err);
+  error = err.message || 'Failed to load items';
+}
+
+const reorderItems = items.map((item, index) => ({
+  id: item.id,
+  name: item.fieldData?.name || '',
+  slug: item.fieldData?.slug || '',
+  sort: item.fieldData?.[collection.sortField as string] ?? index
+}));
+---
+
+<MainLayout pageClass={pageClass}>
+  {error ? (
+    <div class="min-h-screen bg-background flex items-center justify-center px-4">
+      <div class="max-w-md w-full border border-destructive bg-destructive/10 px-4 py-3 text-center">
+        <p class="text-sm text-destructive font-body mb-4">{error}</p>
+        <a
+          href={`${baseUrl}/portal/${slug}`}
+          class="text-sm text-foreground underline"
+        >
+          Back to {collection.name}
+        </a>
+      </div>
+    </div>
+  ) : (
+    <ReorderList
+      client:only="react"
+      collectionId={collection.id}
+      collectionSlug={collection.slug}
+      collectionName={collection.name}
+      sortField={collection.sortField as string}
+      initialItems={reorderItems}
+    />
+  )}
+  <Toaster client:only="react" />
+</MainLayout>

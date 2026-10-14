@@ -26,10 +26,18 @@ export function AvailabilityStarter({}) {
           }
         />
         <Block className={"date-header"} tag={"div"}>
-          <Block className={"label is-alpine-linen"} tag={"div"}>
+          <Block
+            className={"label is-alpine-linen"}
+            id={"w-node-_6bc8dbf3-3a5e-f468-75b0-327b7ee850dc-7ee850d8"}
+            tag={"div"}
+          >
             {"Arrival"}
           </Block>
-          <Block className={" label is-alpine-linen"} tag={"div"}>
+          <Block
+            className={" label is-alpine-linen"}
+            id={"w-node-_6bc8dbf3-3a5e-f468-75b0-327b7ee850de-7ee850d8"}
+            tag={"div"}
+          >
             {"Departure"}
           </Block>
         </Block>
