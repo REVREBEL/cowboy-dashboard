@@ -1,4 +1,5 @@
 
+
 @import "tailwindcss";
 @import "../../generated/webflow.css";
 @import "tw-animate-css";
@@ -179,12 +180,16 @@
 }
 
 /* Custom input sizing utilities */
+/* Fixed (not percentage) caps so fields stay a comfortable, readable width
+   regardless of how wide their surrounding container is. */
 .input-xs {
-  max-width: 75%;
+max-width: 34rem;
+width: 100%;
 }
 
 .input-sm {
-  max-width: 50%;
+max-width: 23rem;
+width: 100%;
 }
 
 /* Overrides */
@@ -255,6 +260,7 @@ border-radius: calc(var(--radius) / 4) !important;
   background-color: var(--primary) !important;
   opacity: 0.9;
 }
+
 
 
 

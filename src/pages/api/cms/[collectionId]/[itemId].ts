@@ -1,20 +1,15 @@
 import type { APIRoute } from 'astro';
-import { WebflowClient } from 'webflow-api';
+import { createCmsClient } from '../../../../lib/webflow-client';
 
 export const GET: APIRoute = async ({ params, locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || 
-                import.meta.env.WEBFLOW_CMS_API_TOKEN;
-  
-  if (!token) {
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('CMS token error:', error);
     return new Response('Missing token', { status: 500 });
   }
 
-  const baseUrl = locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-  const client = new WebflowClient({
-    accessToken: token,
-    ...(baseUrl && { baseUrl })
-  });
-  
   const { collectionId, itemId } = params;
 
   try {
@@ -30,30 +25,21 @@ export const GET: APIRoute = async ({ params, locals }) => {
 };
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || 
-                import.meta.env.WEBFLOW_CMS_API_TOKEN;
-  
-  if (!token) {
-    console.error('PATCH: Missing API token');
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('PATCH: CMS token error:', error);
     return new Response('Missing token', { status: 500 });
   }
 
-  console.log('PATCH: Using token starting with:', token.substring(0, 10));
-  console.log('PATCH: Token source:', locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ? 'runtime env' : 'import.meta.env');
-
-  const baseUrl = locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-  const client = new WebflowClient({
-    accessToken: token,
-    ...(baseUrl && { baseUrl })
-  });
-  
   const { collectionId, itemId } = params;
   console.log('PATCH: Updating item', { collectionId, itemId });
 
   try {
-    const body = await request.json();
+    const body = await request.json() as { fieldData?: Record<string, unknown> };
     console.log('PATCH: Request body received', { fieldDataKeys: Object.keys(body.fieldData || {}) });
-    
+
     // Update the item
     console.log('PATCH: Calling updateItem...');
     const updatedItem = await client.collections.items.updateItem(
@@ -79,17 +65,41 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   } catch (error) {
     console.error('PATCH: Error updating item:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: 'Failed to update item',
-      details: errorMessage 
-    }), { 
+      details: errorMessage
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 };
 
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('DELETE: CMS token error:', error);
+    return new Response('Missing token', { status: 500 });
+  }
 
+  const { collectionId, itemId } = params;
 
-
-
+  try {
+    await client.collections.items.deleteItem(collectionId!, itemId!);
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error: any) {
+    console.error('DELETE: Error deleting item:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to delete item',
+      details: error?.message || 'Unknown error'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+};

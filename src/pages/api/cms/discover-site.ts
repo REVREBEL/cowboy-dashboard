@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ locals }) => {
     const sites = await client.sites.list();
     
     return new Response(JSON.stringify({ 
-      sites: sites.sites.map(site => ({
+      sites: (sites.sites ?? []).map(site => ({
         id: site.id,
         displayName: site.displayName,
         shortName: site.shortName,
@@ -46,3 +46,4 @@ export const GET: APIRoute = async ({ locals }) => {
     });
   }
 };
+

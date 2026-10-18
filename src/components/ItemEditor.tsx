@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -14,6 +12,16 @@ import { getFieldRows, getLayoutClasses } from '../lib/field-layouts';
 import { COLLECTIONS } from '../lib/collections-config';
 import ImageUpload from './ImageUpload';
 import MultiImageField from './MultiImageField';
+import HotspotPicker from './HotspotPicker';
+import MultiHotspotTagger, { type HotspotMarker, type AmenityOption } from './MultiHotspotTagger';
+import RoomPhotoPicker from './RoomPhotoPicker';
+import type { ImageData } from '../lib/image-upload-client';
+import {
+  ROOM_TYPES_COLLECTION_ID,
+  extractAmenityIds,
+  findRoomTypeIdForPhoto,
+} from '../lib/room-type-photos';
+import { fetchAllPhotoHotspots, type PhotoHotspotItem } from '../lib/photo-hotspots';
 import {
   Select,
   SelectContent,
@@ -21,6 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 
 interface Field {
   id: string;
@@ -57,6 +71,8 @@ interface ItemEditorProps {
   fields: Field[];
   initialData: Record<string, any>;
   baseUrl: string;
+  /** Pre-selects a Room Type in the Photo Hotspots "choose an existing photo" picker. */
+  initialRoomTypeId?: string;
 }
 
 // Color mapping from Webflow CSS variables
@@ -136,13 +152,56 @@ export default function ItemEditor({
   itemId, 
   fields: rawFields, 
   initialData,
-  baseUrl 
+  baseUrl,
+  initialRoomTypeId,
 }: ItemEditorProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [referenceOptions, setReferenceOptions] = useState<Record<string, ReferenceOption[]>>({});
   const [referenceLoading, setReferenceLoading] = useState<Record<string, boolean>>({});
+
+  // Photo Hotspots: the Amenity dropdown should only list amenities that
+  // are actually attached (via `features-amenities`) to the Room Type this
+  // hotspot's photo belongs to. `null` = not scoped (show everything,
+  // either because this isn't a Photo Hotspot or we couldn't resolve a
+  // Room Type yet); an array (possibly empty) = scoped to those ids.
+  const isPhotoHotspots = collectionSlug === 'photo-hotspots';
+  const [allowedAmenityIds, setAllowedAmenityIds] = useState<string[] | null>(null);
+  const [amenityScopeRoomTypeName, setAmenityScopeRoomTypeName] = useState<string | null>(null);
+
+  // Room Types: load every published Photo Hotspot once so each photo's
+  // thumbnail/modal can show all of its tagged amenities inline (a single
+  // image view with every dot at once), instead of sending the editor off
+  // to a separate page per photo.
+  const isRoomTypes = collectionSlug === 'room-types';
+  const [roomTypePhotoHotspots, setRoomTypePhotoHotspots] = useState<PhotoHotspotItem[]>([]);
+
+  // Multi-marker amenity tagging: lets Room Types editors drop several
+  // amenity hotspots on a single photo in one sitting (via
+  // MultiHotspotTagger + the bulk-create API) instead of the old
+  // one-hotspot-per-page-navigation flow.
+  const [taggerImage, setTaggerImage] = useState<ImageData | null>(null);
+  const PHOTO_HOTSPOTS_COLLECTION = React.useMemo(
+    () => COLLECTIONS.find(c => c.slug === 'photo-hotspots'),
+    []
+  );
+
+  useEffect(() => {
+    if (!isRoomTypes) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const items = await fetchAllPhotoHotspots(baseUrl);
+        if (!cancelled) setRoomTypePhotoHotspots(items);
+      } catch (err) {
+        console.error('Failed to load photo hotspots for room type gallery', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isRoomTypes, baseUrl]);
 
   // Webflow's API returns `isRequired`, but older/local types used
   // `required`. Normalize here so the rest of the component (and the
@@ -155,9 +214,97 @@ export default function ItemEditor({
   // Initialize form data with initial values
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      setFormData(initialData);
+      const next = { ...initialData };
+      // Backfill the slug when the form is seeded with a name but no slug
+      // yet (e.g. a Photo Hotspot pre-filled from a Room Type's photo via
+      // the "Tag amenity hotspot" hand-off). The slug auto-generation in
+      // handleChange only fires when the user types into Name themselves,
+      // not when initialData seeds the form like this.
+      if (next.name && !next.slug) {
+        next.slug = generateSlug(next.name);
+      }
+      setFormData(next);
     }
   }, [initialData]);
+
+  // Resolve which Room Type this Photo Hotspot's photo belongs to, then
+  // load that Room Type's `features-amenities` so the Amenity dropdown can
+  // be scoped to only the amenities/features actually attached to it.
+  useEffect(() => {
+    if (!isPhotoHotspots) return;
+
+    let cancelled = false;
+    const photoFileId = formData['photo-file-id'] || null;
+    const photoUrl = formData['photo-url'] || null;
+
+    (async () => {
+      // Prefer the Room Type passed in explicitly via the "Tag amenity
+      // hotspot" hand-off; otherwise detect it by matching the hotspot's
+      // photo against every Room Type's photo gallery (covers existing
+      // hotspots opened directly for editing).
+      let roomTypeId = initialRoomTypeId || null;
+      if (!roomTypeId && (photoFileId || photoUrl)) {
+        roomTypeId = await findRoomTypeIdForPhoto(baseUrl, photoFileId, photoUrl);
+      }
+
+      if (cancelled) return;
+
+      if (!roomTypeId) {
+        setAllowedAmenityIds(null);
+        setAmenityScopeRoomTypeName(null);
+        return;
+      }
+
+      try {
+        const res = await fetch(`${baseUrl}/api/cms/${ROOM_TYPES_COLLECTION_ID}/${roomTypeId}`);
+        if (!res.ok) throw new Error(`Failed to load room type (${res.status})`);
+        const data = await res.json() as { fieldData?: Record<string, any> };
+        if (cancelled) return;
+        setAllowedAmenityIds(extractAmenityIds(data.fieldData || {}));
+        setAmenityScopeRoomTypeName(data.fieldData?.name || null);
+      } catch (err) {
+        console.error('Failed to resolve amenities for room type', roomTypeId, err);
+        if (!cancelled) {
+          setAllowedAmenityIds(null);
+          setAmenityScopeRoomTypeName(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPhotoHotspots, initialRoomTypeId, formData['photo-file-id'], formData['photo-url'], baseUrl]);
+
+  // Photo Hotspots: auto-build the Name/Slug from the resolved Room Type,
+  // the selected Amenity, and the photo's file id — e.g.
+  // Name: "The Cabin Rooms - Cabin Beds"
+  // Slug: "the-cabin-rooms-cabin-beds_6acfd7ba434add8425f18456"
+  // Re-runs (and overwrites Name/Slug) whenever any of those three inputs
+  // change, so picking/changing the Amenity always keeps them in sync.
+  useEffect(() => {
+    if (!isPhotoHotspots) return;
+
+    const amenityId = formData['amenity'];
+    const photoFileId = formData['photo-file-id'];
+    if (!amenityId || !amenityScopeRoomTypeName || !photoFileId) return;
+
+    const amenityOptions = referenceOptions[AMENITIES_COLLECTION_ID] || [];
+    const amenityName = amenityOptions.find(o => o.id === amenityId)?.name;
+    // Options may not have loaded yet — bail and let this effect re-run
+    // once `referenceOptions` updates.
+    if (!amenityName) return;
+
+    const generatedName = `${amenityScopeRoomTypeName} - ${amenityName}`;
+    const generatedSlug = `${generateSlug(amenityScopeRoomTypeName)}-${generateSlug(amenityName)}_${photoFileId}`;
+
+    setFormData(prev => {
+      if (prev.name === generatedName && prev.slug === generatedSlug) return prev;
+      return { ...prev, name: generatedName, slug: generatedSlug };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPhotoHotspots, formData['amenity'], formData['photo-file-id'], amenityScopeRoomTypeName, referenceOptions]);
 
   // Fetch display names for Reference / MultiReference fields so we can
   // show readable item names instead of raw Webflow item IDs.
@@ -241,6 +388,89 @@ export default function ItemEditor({
     });
   };
 
+  // Lets editors jump from a Room Type's photo straight into creating a
+  // Photo Hotspot pre-filled with that photo (and the Room Type it came
+  // from), instead of hand-copying URLs/file ids from the Designer.
+  const canTagHotspot = collectionSlug === 'room-types';
+  const handleTagHotspot = (image: ImageData) => {
+    setTaggerImage(image);
+  };
+
+  // Amenities actually attached to this Room Type (via `features-amenities`),
+  // excluding Policy-typed items — scopes the tagger's amenity dropdown the
+  // same way the single-item Photo Hotspot editor's Amenity field is scoped.
+  const taggerAmenityOptions: AmenityOption[] = React.useMemo(() => {
+    const ids = extractAmenityIds(formData);
+    const all = referenceOptions[AMENITIES_COLLECTION_ID] || [];
+    return all
+      .filter(o => ids.includes(o.id) && o.type !== AMENITY_POLICY_TYPE_ID)
+      .map(o => ({ id: o.id, name: o.name }));
+  }, [formData, referenceOptions]);
+
+  const handleTaggerSubmit = async (markers: HotspotMarker[]) => {
+    if (!taggerImage || !PHOTO_HOTSPOTS_COLLECTION) return;
+    const roomTypeName = formData.name || initialData?.name || '';
+
+    const items = markers.map((m) => {
+      const amenityName = taggerAmenityOptions.find(a => a.id === m.amenityId)?.name || '';
+      return {
+        fieldData: {
+          name: `${roomTypeName} - ${amenityName}`,
+          slug: `${generateSlug(roomTypeName)}-${generateSlug(amenityName)}_${taggerImage.fileId}-${generateSlug(m.id)}`,
+          'photo-url': taggerImage.url,
+          'photo-file-id': taggerImage.fileId,
+          'x-percent': m.x,
+          'y-percent': m.y,
+          amenity: m.amenityId,
+          active: true,
+        },
+      };
+    });
+
+    try {
+      const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
+        throw new Error(err.error || `Failed to save hotspots: ${res.statusText}`);
+      }
+
+      toast.success(`${markers.length} hotspot${markers.length === 1 ? '' : 's'} tagged`, {
+        description: 'Published to the CMS.',
+      });
+      setTaggerImage(null);
+
+      try {
+        const refreshed = await fetchAllPhotoHotspots(baseUrl);
+        setRoomTypePhotoHotspots(refreshed);
+      } catch (err) {
+        console.error('Failed to refresh photo hotspots after bulk save', err);
+      }
+    } catch (err) {
+      console.error('Failed to bulk save hotspots', err);
+      toast.error('Failed to save hotspots', {
+        description: err instanceof Error ? err.message : 'An error occurred',
+      });
+      throw err;
+    }
+  };
+
+  // Lets editors open the read-only "Review tagged photos" view straight
+  // from a Room Type's photo gallery, pre-filled with that photo (and the
+  // Room Type it came from), instead of hunting for it from scratch.
+  const canReviewHotspots = isRoomTypes;
+  const handleReviewHotspots = (image: ImageData) => {
+    const params = new URLSearchParams();
+    if (image.url) params.set('photoUrl', image.url);
+    if (image.fileId) params.set('photoFileId', image.fileId);
+    if (itemId && itemId !== 'new') params.set('roomTypeId', itemId);
+    window.location.href = `${baseUrl}/portal/photo-hotspots/review?${params.toString()}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -290,6 +520,22 @@ export default function ItemEditor({
       if (isNewItem) {
         // Redirect to the newly created item's edit page
         const newItemId = result.id;
+
+        // If this Photo Hotspot was created via the "Tag amenity hotspot"
+        // hand-off from a Room Type's photo gallery, send the editor back
+        // to that Room Type instead of into the brand-new hotspot's own
+        // (comparatively empty) edit page — that's where the user's
+        // actual workflow continues (tagging the next photo, etc).
+        if (isPhotoHotspots && initialRoomTypeId) {
+          toast.success('Hotspot created successfully!', {
+            description: 'Returning to the room type...',
+          });
+          setTimeout(() => {
+            window.location.href = `${baseUrl}/portal/room-types/${initialRoomTypeId}`;
+          }, 500);
+          return;
+        }
+
         toast.success('Item created successfully!', {
           description: 'Redirecting to edit page...',
         });
@@ -372,7 +618,7 @@ export default function ItemEditor({
 
       case 'RichText':
         return (
-          <div key={field.slug} className="space-y-1.5">
+          <div key={field.slug} className="space-y-1.5 max-w-2xl">
             <FieldLabel 
               htmlFor={field.slug}
               displayName={field.displayName}
@@ -405,7 +651,7 @@ export default function ItemEditor({
               value={value ?? ''}
               onChange={(e) => handleChange(field.slug, e.target.value ? parseFloat(e.target.value) : null)}
               required={field.required}
-              className="font-body"
+              className="font-body input-xs"
             />
           </div>
         );
@@ -446,7 +692,7 @@ export default function ItemEditor({
               value={dateValue}
               onChange={(e) => handleChange(field.slug, e.target.value ? new Date(e.target.value).toISOString() : null)}
               required={field.required}
-              className="font-body"
+              className="font-body input-xs"
             />
           </div>
         );
@@ -468,7 +714,7 @@ export default function ItemEditor({
               onChange={(e) => handleChange(field.slug, { url: e.target.value })}
               required={field.required}
               placeholder="https://example.com"
-              className="font-body"
+              className="font-body input-xs"
             />
           </div>
         );
@@ -482,21 +728,21 @@ export default function ItemEditor({
               isRequired={field.required}
               helpText={field.helpText}
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 input-xs">
               <Input
                 id={field.slug}
                 type="color"
                 value={value || '#000000'}
                 onChange={(e) => handleChange(field.slug, e.target.value)}
                 required={field.required}
-                className="w-20 h-10 cursor-pointer"
+                className="w-20 h-10 cursor-pointer flex-shrink-0"
               />
               <Input
                 type="text"
                 value={value || ''}
                 onChange={(e) => handleChange(field.slug, e.target.value)}
                 placeholder="#000000"
-                className="font-mono flex-1"
+                className="font-mono flex-1 min-w-0"
               />
             </div>
           </div>
@@ -514,6 +760,9 @@ export default function ItemEditor({
             required={field.required}
             helpText={field.helpText}
             baseUrl={baseUrl}
+            onTagHotspot={canTagHotspot ? handleTagHotspot : undefined}
+            onReviewHotspots={canReviewHotspots ? handleReviewHotspots : undefined}
+            photoHotspots={isRoomTypes ? roomTypePhotoHotspots : undefined}
           />
         );
 
@@ -529,6 +778,9 @@ export default function ItemEditor({
               required={field.required}
               helpText={field.helpText}
               baseUrl={baseUrl}
+              onTagHotspot={canTagHotspot ? handleTagHotspot : undefined}
+              onReviewHotspots={canReviewHotspots ? handleReviewHotspots : undefined}
+              photoHotspots={isRoomTypes ? roomTypePhotoHotspots : undefined}
             />
           );
         }
@@ -542,6 +794,7 @@ export default function ItemEditor({
             label={field.displayName}
             required={field.required}
             helpText={field.helpText}
+            onTagHotspot={canTagHotspot ? handleTagHotspot : undefined}
           />
         );
 
@@ -591,6 +844,14 @@ export default function ItemEditor({
         const refCollectionId = field.validations?.collectionId;
         const rawRefOptions = refCollectionId ? referenceOptions[refCollectionId] || [] : [];
         const typeFilteredOptions = filterReferenceOptionsForField(field, rawRefOptions);
+
+        // Photo Hotspots: narrow the Amenity dropdown to only the
+        // amenities/features actually attached to this hotspot's Room Type.
+        const isScopedAmenityField = isPhotoHotspots && field.slug === 'amenity' && allowedAmenityIds !== null;
+        const scopedOptions = isScopedAmenityField
+          ? typeFilteredOptions.filter(o => allowedAmenityIds!.includes(o.id))
+          : typeFilteredOptions;
+
         const isLoadingOptions = refCollectionId ? !!referenceLoading[refCollectionId] : false;
         const currentId: string = formData[field.slug] || '';
         const NONE_VALUE = '__none__';
@@ -599,11 +860,11 @@ export default function ItemEditor({
         // even before the async reference-options fetch resolves. Without
         // this, Radix's controlled Select can fail to reflect a valid
         // value if no <SelectItem> matches it yet.
-        const currentIdKnown = currentId && typeFilteredOptions.some(o => o.id === currentId);
+        const currentIdKnown = currentId && scopedOptions.some(o => o.id === currentId);
         const currentIdFromRaw = currentId ? rawRefOptions.find(o => o.id === currentId) : undefined;
         const refOptions = currentId && !currentIdKnown
-          ? [{ id: currentId, name: currentIdFromRaw?.name || (isLoadingOptions ? 'Loading…' : currentId) }, ...typeFilteredOptions]
-          : typeFilteredOptions;
+          ? [{ id: currentId, name: currentIdFromRaw?.name || (isLoadingOptions ? 'Loading…' : currentId) }, ...scopedOptions]
+          : scopedOptions;
 
         return (
           <div key={field.slug} className="space-y-1.5">
@@ -644,6 +905,16 @@ export default function ItemEditor({
                 ))}
               </SelectContent>
             </Select>
+            {isScopedAmenityField && (
+              <p className="text-xs text-muted-foreground font-body">
+                {amenityScopeRoomTypeName
+                  ? `Showing only amenities & features attached to ${amenityScopeRoomTypeName}.`
+                  : 'Showing only amenities & features attached to this hotspot\u2019s room type.'}
+                {allowedAmenityIds && allowedAmenityIds.length === 0 && (
+                  <> This room type has none yet — attach some via its Features & Amenities field first.</>
+                )}
+              </p>
+            )}
           </div>
         );
       }
@@ -755,7 +1026,8 @@ export default function ItemEditor({
   const fieldMap = new Map(fields.map(f => [f.slug, f]));
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto px-4 sm:px-0">
+    <>
+    <form onSubmit={handleSubmit} className="w-full">
         {error && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive text-destructive font-body text-sm">
             {error}
@@ -786,7 +1058,12 @@ export default function ItemEditor({
             
             // Special handling for Visibility section
             const isVisibility = group.name === 'Visibility';
-            
+
+            // Special handling for the Photo Hotspots "Photo" section: let
+            // editors pick an existing Room Type photo visually instead of
+            // hand-copying URLs/file ids from the Designer.
+            const isPhotoHotspotPhotoGroup = collectionSlug === 'photo-hotspots' && group.name === 'Photo';
+
             return (
               <section key={group.name} className="space-y-6">
                 <div className="pb-3 border-b border-border">
@@ -796,7 +1073,27 @@ export default function ItemEditor({
                   )}
                 </div>
                 
-                {isVisibility ? (
+                {isPhotoHotspotPhotoGroup ? (
+                  <div className="space-y-6">
+                    <RoomPhotoPicker
+                      baseUrl={baseUrl}
+                      selectedUrl={formData['photo-url'] || null}
+                      selectedFileId={formData['photo-file-id'] || null}
+                      initialRoomTypeId={initialRoomTypeId}
+                      onSelect={({ url, fileId }) => {
+                        setFormData(prev => ({ ...prev, 'photo-url': url, 'photo-file-id': fileId }));
+                      }}
+                    />
+                    {(() => {
+                      const photoUrlField = fieldMap.get('photo-url');
+                      return photoUrlField ? renderField(photoUrlField) : null;
+                    })()}
+                    {(() => {
+                      const photoFileIdField = fieldMap.get('photo-file-id');
+                      return photoFileIdField ? renderField(photoFileIdField) : null;
+                    })()}
+                  </div>
+                ) : isVisibility ? (
                   // Special layout for Visibility: Active first, then Member Only
                   <div className="space-y-6">
                     {/* Render Active first */}
@@ -841,6 +1138,33 @@ export default function ItemEditor({
                       }
                       
                       // Multiple fields in row - use grid
+                      const rowSlugs = row.fields.map(f => f.slug);
+                      const isHotspotPositionRow =
+                        collectionSlug === 'photo-hotspots' &&
+                        rowSlugs.includes('x-percent') &&
+                        rowSlugs.includes('y-percent');
+
+                      if (isHotspotPositionRow) {
+                        const xField = fieldMap.get('x-percent');
+                        return (
+                          <div key={`${group.name}-${rowIndex}`}>
+                            <HotspotPicker
+                              photoUrl={formData['photo-url'] || null}
+                              xPercent={
+                                typeof formData['x-percent'] === 'number' ? formData['x-percent'] : null
+                              }
+                              yPercent={
+                                typeof formData['y-percent'] === 'number' ? formData['y-percent'] : null
+                              }
+                              required={xField?.required}
+                              onChange={(x, y) => {
+                                setFormData(prev => ({ ...prev, 'x-percent': x, 'y-percent': y }));
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+
                       return (
                         <div key={`${group.name}-${rowIndex}`} className="grid grid-cols-12 gap-4">
                           {row.fields.map(fieldConfig => {
@@ -883,8 +1207,49 @@ export default function ItemEditor({
           </Button>
         </div>
       </form>
+
+      <Dialog
+        open={!!taggerImage}
+        onOpenChange={(open) => {
+          if (!open) setTaggerImage(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Tag amenity hotspots</DialogTitle>
+          </DialogHeader>
+          {taggerImage && (
+            <MultiHotspotTagger
+              photoUrl={taggerImage.url || ''}
+              photoFileId={taggerImage.fileId || ''}
+              roomTypeId={itemId && itemId !== 'new' ? itemId : null}
+              amenityOptions={taggerAmenityOptions}
+              onSubmit={handleTaggerSubmit}
+              onCancel={() => setTaggerImage(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,5 @@
 
+
 // Field group mappings for organizing CMS fields into sections
 // Field slugs below are sourced directly from the live Webflow collection
 // schemas (see cms-collections-documentation.json) — keep these in sync if
@@ -392,6 +393,28 @@ export const FIELD_GROUPS: Record<string, FieldGroup[]> = {
       description: 'Display order.',
       fields: ['sort']
     }
+  ],
+  'photo-hotspots': [
+    {
+      name: 'Basic Information',
+      description: 'Core details that identify this marker.',
+      fields: ['name', 'slug', 'amenity']
+    },
+    {
+      name: 'Photo',
+      description: 'The published room photo this hotspot is placed on. Coordinates below are tied to this exact image.',
+      fields: ['photo-url', 'photo-file-id']
+    },
+    {
+      name: 'Position',
+      description: 'Click directly on the photo to drop the marker, or fine-tune the percentages manually.',
+      fields: ['x-percent', 'y-percent']
+    },
+    {
+      name: 'Display',
+      description: 'Ordering and visibility of this marker.',
+      fields: ['display-order', 'active']
+    }
   ]
 };
 
@@ -440,4 +463,5 @@ export function organizeFieldsByGroup(collectionSlug: string, fields: any[]): Ar
 
   return organized;
 }
+
 

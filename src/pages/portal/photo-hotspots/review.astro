@@ -1,0 +1,59 @@
+---
+import MainLayout from '../../../layouts/main.astro';
+import HotspotReview from '../../../components/HotspotReview';
+import { baseUrl } from '../../../lib/base-url';
+
+const pageClass = 'portal-hotspot-review';
+
+const photoUrl = Astro.url.searchParams.get('photoUrl') || undefined;
+const photoFileId = Astro.url.searchParams.get('photoFileId') || undefined;
+const roomTypeId = Astro.url.searchParams.get('roomTypeId') || undefined;
+---
+
+<MainLayout pageClass={pageClass}>
+  <div class="min-h-screen bg-background">
+    <!-- Header -->
+    <header class="border-b border-border bg-card">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+        <div class="mb-4">
+          <a
+            href={`${baseUrl}/portal/photo-hotspots`}
+            class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 12L6 8l4-4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Photo Hotspots
+          </a>
+        </div>
+
+        <div>
+          <h1 class="font-heading text-2xl sm:text-3xl text-foreground mb-1.5">
+            Review tagged photos
+          </h1>
+          <p class="text-sm text-muted-foreground font-body">
+            Pick a Room Type photo to see every amenity hotspot currently tagged on it.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <HotspotReview
+        client:only="react"
+        baseUrl={baseUrl}
+        initialRoomTypeId={roomTypeId}
+        initialPhotoUrl={photoUrl}
+        initialPhotoFileId={photoFileId}
+      />
+    </main>
+  </div>
+</MainLayout>
+
+<style>
+  .portal-hotspot-review h1 {
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+</style>

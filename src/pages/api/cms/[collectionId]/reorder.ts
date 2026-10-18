@@ -1,24 +1,19 @@
 import type { APIRoute } from 'astro';
-import { WebflowClient } from 'webflow-api';
+import { createCmsClient } from '../../../../lib/webflow-client';
 
 // Bulk-update a numeric "sort" style field across many items, then publish them.
 // Body: { sortField: string, items: { id: string; sort: number }[] }
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
-                import.meta.env.WEBFLOW_CMS_API_TOKEN;
-
-  if (!token) {
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('CMS token error:', error);
     return new Response(JSON.stringify({ error: 'Missing token' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
-
-  const apiHost = locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-  const client = new WebflowClient({
-    accessToken: token,
-    ...(apiHost && { baseUrl: apiHost })
-  });
 
   const { collectionId } = params;
 
@@ -80,3 +75,4 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     });
   }
 };
+

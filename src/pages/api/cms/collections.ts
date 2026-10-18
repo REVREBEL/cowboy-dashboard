@@ -1,35 +1,27 @@
 import type { APIRoute } from 'astro';
-import { WebflowClient } from 'webflow-api';
+import { createCmsClient } from '../../../lib/webflow-client';
 
 export const GET: APIRoute = async ({ locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || 
-                locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
-                import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN ||
-                import.meta.env.WEBFLOW_CMS_API_TOKEN;
-                
-  const siteId = locals?.runtime?.env?.WEBFLOW_SITE_ID || 
+  const siteId = locals?.runtime?.env?.WEBFLOW_SITE_ID ||
                  import.meta.env.WEBFLOW_SITE_ID;
-  
-  if (!token) {
-    return new Response(JSON.stringify({ error: 'Missing CMS API token' }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
 
   if (!siteId) {
-    return new Response(JSON.stringify({ error: 'Missing WEBFLOW_SITE_ID in environment variables' }), { 
+    return new Response(JSON.stringify({ error: 'Missing WEBFLOW_SITE_ID in environment variables' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  const baseUrl = locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-  
-  const client = new WebflowClient({
-    accessToken: token,
-    ...(baseUrl && { baseUrl })
-  });
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('CMS token error:', error);
+    return new Response(JSON.stringify({ error: 'Missing CMS API token' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 
   try {
     // List all collections for the site
@@ -87,3 +79,4 @@ export const GET: APIRoute = async ({ locals }) => {
     });
   }
 };
+

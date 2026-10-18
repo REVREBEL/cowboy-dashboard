@@ -1,5 +1,7 @@
 
 
+
+
 ---
 import MainLayout from '../../../layouts/main.astro';
 import { COLLECTIONS } from '../../../lib/collections-config';
@@ -62,9 +64,28 @@ const initialData: Record<string, any> = {
 // Set default values for boolean fields
 fields.forEach(field => {
   if (field.type === 'Switch' && field.slug) {
-    initialData[field.slug] = false;
+    // Photo Hotspots are meant to be visible as soon as they're tagged, so
+    // default "active" to true here instead of the generic false default —
+    // otherwise every newly tagged hotspot is invisible until someone finds
+    // and flips the switch manually.
+    initialData[field.slug] = slug === 'photo-hotspots' && field.slug === 'active' ? true : false;
   }
 });
+
+// Hand-off from a Room Type's photo gallery: pre-fill the photo (and a
+// sensible name) when arriving via the "Tag amenity hotspot" button.
+const photoUrl = Astro.url.searchParams.get('photoUrl');
+const photoFileId = Astro.url.searchParams.get('photoFileId');
+const roomTypeId = Astro.url.searchParams.get('roomTypeId');
+const roomTypeName = Astro.url.searchParams.get('roomTypeName');
+
+if (slug === 'photo-hotspots') {
+  if (photoUrl) initialData['photo-url'] = photoUrl;
+  if (photoFileId) initialData['photo-file-id'] = photoFileId;
+  if (roomTypeName && !initialData.name) {
+    initialData.name = `${roomTypeName} hotspot`;
+  }
+}
 
 console.log('Initial data:', initialData);
 console.log('=== END NEW ITEM PAGE LOAD ===');
@@ -120,6 +141,7 @@ if (!collectionDetails) {
           fields={collectionDetails.fields as any}
           initialData={initialData}
           baseUrl={baseUrl}
+          initialRoomTypeId={slug === 'photo-hotspots' && roomTypeId ? roomTypeId : undefined}
         />
       )}
     </main>
@@ -134,6 +156,8 @@ if (!collectionDetails) {
     letter-spacing: -0.015em;
   }
 </style>
+
+
 
 
 

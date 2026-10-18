@@ -6,7 +6,12 @@ const execAsync = promisify(exec);
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    const body = await request.json();
+    const body = await request.json() as {
+      write?: boolean;
+      clearEmpty?: boolean;
+      width?: number;
+      only?: string | null;
+    };
     const { write = false, clearEmpty = false, width = 1600, only = null } = body;
 
     // Build the command
@@ -58,6 +63,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 };
+
 
 
 

@@ -1,17 +1,9 @@
-
-
-
-
-
-
 ---
 import MainLayout from '../../layouts/main.astro';
 import { COLLECTIONS } from '../../lib/collections-config';
 import { getLiveCollections } from '../../lib/get-live-collections';
 import { WebflowClient } from 'webflow-api';
 import { baseUrl } from '../../lib/base-url';
-
-const pageClass = 'portal-home';
 
 const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
               import.meta.env.WEBFLOW_CMS_API_TOKEN;
@@ -37,14 +29,23 @@ if (token && siteId) {
 ---
 
 <MainLayout pageClass="portal-home">
-  <div class="min-h-screen" style="background: #faf9f9;">
+  <div class="min-h-screen bg-background">
     <!-- Header -->
-    <header class="border-b" style="background: #ebe8e0; border-color: #ddc5a4;">
+    <header class="border-b border-border bg-muted">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <h1 class="font-heading text-2xl sm:text-3xl mb-2" style="color: #4e332d;">
+        <a
+          href={`${baseUrl}/`}
+          class="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0">
+            <path d="M6 3L2 8l4 5M2 8h12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Home</span>
+        </a>
+        <h1 class="font-heading text-2xl sm:text-3xl mb-2 text-foreground">
           CMS Portal
         </h1>
-        <p class="text-sm font-body" style="color: #69253a;">
+        <p class="text-sm font-body text-muted-foreground">
           Manage content across {collections.length} collections
         </p>
       </div>
@@ -52,33 +53,22 @@ if (token && siteId) {
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      <div class="grid gap-px border" style="background: #ddc5a4; border-color: #ddc5a4;">
-        <div class="mb-8">
-          <a 
-            href={`${baseUrl}/`}
-            class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10 13l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span class="ml-2">Home</span>
-          </a>
-        </div>
+      <div class="grid gap-px border border-border bg-border">
         {collections.map((collection) => (
           <a 
             href={`${baseUrl}/portal/${collection.slug}`}
-            class="block border border-border bg-card hover:bg-accent/5 transition-colors px-4 py-3"
+            class="group block border border-border bg-card hover:bg-accent/5 transition-colors px-4 py-3"
           >
             <div class="flex items-center justify-between gap-4 sm:gap-6">
               <div class="flex-1 min-w-0">
-                <h2 class="font-heading text-sm sm:text-base group-hover:text-primary transition-colors mb-1 truncate" style="color: #4e332d;">
+                <h2 class="font-heading text-sm sm:text-base text-foreground group-hover:text-primary transition-colors mb-1 truncate">
                   {collection.name}
                 </h2>
-                <p class="text-xs font-mono truncate" style="color: #69253a;">
+                <p class="text-xs font-mono text-muted-foreground truncate">
                   {collection.slug}
                 </p>
               </div>
-              <div class="text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" style="color: #69253a;">
+              <div class="text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M7 4l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
@@ -101,12 +91,3 @@ if (token && siteId) {
     font-weight: 500;
   }
 </style>
-
-
-
-
-
-
-
-
-

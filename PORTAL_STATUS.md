@@ -3,9 +3,43 @@
 
 
 
+
 # CMS Portal Development Status
 
 ## Current State (Latest Session) — Updated
+
+### ✅ New: Multi-Marker Photo Hotspot Tagging — 100% COMPLETE
+**Ask**: Let editors tag a single Room Type photo with multiple amenity hotspots in one session (place several pins, assign an amenity to each, save/publish all at once) instead of repeating the single-marker flow one hotspot at a time.
+
+**Shipped**:
+- `src/components/MultiHotspotTagger.tsx` — new multi-pin tagging UI. Maintains a `markers: HotspotMarker[]` array (`{ id, x, y, amenityId }`); click the photo to drop a numbered pin, drag to reposition, side-panel `<Select>` per marker to assign a room-type-scoped amenity, remove button per pin. Reuses the same bounding-rect percentage math as the original `HotspotPicker.tsx`.
+- `src/pages/api/cms/[collectionId]/bulk.ts` — new bulk endpoint. `POST { items: Array<{ fieldData }> }` creates every hotspot item in a single `createItems()` call, then publishes all new item IDs together with one `publishItem()` call — mirrors the single-item create-then-publish pattern, batched.
+- `src/components/ItemEditor.tsx` — integration point. Renders `MultiHotspotTagger` inside a shadcn `<Dialog>` ("Tag amenity hotspots"), feeds it `photoUrl`/`photoFileId`/`roomTypeId` plus amenity options scoped via the existing `extractAmenityIds()`/`findRoomTypeIdForPhoto()` helpers, and on submit POSTs the generated `fieldData` array to `/api/cms/[collectionId]/bulk`.
+
+Full build log and architecture detail: `HOTSPOT_ARCHITECTURE_REF.md` and `multi-hotspot-progress.md`.
+
+### ✅ CMS API & Authentication — Standardized
+All API routes under `src/pages/api/cms/` (`[collectionId].ts`, `[collectionId]/[itemId].ts`, `[collectionId]/[itemId]/publish.ts`, `[collectionId]/bulk.ts`, `[collectionId]/reorder.ts`, `reference/[itemId].ts`, `collections.ts`, `upload-image.ts`) now go through the centralized `createCmsClient(locals)` (and `getCmsToken(locals)`) factory in `src/lib/webflow-client.ts`, which strictly resolves `WEBFLOW_CMS_API_TOKEN` (checking `locals.runtime.env`, `import.meta.env`, then `process.env`, in that order) and throws if it isn't set — no silent fallback to any other token name. This replaces the previous pattern of each route independently reading `locals?.runtime?.env?.WEBFLOW_CMS_SITE_API_TOKEN || import.meta.env.WEBFLOW_CMS_SITE_API_TOKEN` and constructing its own `WebflowClient`, so token rotation or env changes now only require a single-file edit.
+
+### ✅ Build & Type Safety
+`npx astro check` passes with **0 errors, 0 warnings** across the entire project (97 files) — only a handful of pre-existing, harmless "declared but never read" hints remain.
+
+---
+
+### ✅ New: Read-only "review tags" view for Photo Hotspots
+**Ask**: Give editors a way to review a Room Type photo and see every amenity hotspot already tagged on it — dots plus the item's name only, no editing controls.
+
+**Shipped**:
+- `src/lib/photo-hotspots.ts` — shared helpers: `fetchAllPhotoHotspots(baseUrl)` paginates the Photo Hotspots collection via the local `/api/cms/[collectionId]` proxy and normalizes each item (`PhotoHotspotItem`); `hotspotsForPhoto(hotspots, photoFileId, photoUrl)` filters/sorts matches for a specific photo (File ID match wins, falls back to URL match).
+- `src/components/HotspotReview.tsx` — read-only review UI. Reuses `RoomPhotoPicker` to choose a Room Type + photo, then overlays a colored dot for each **active** matching hotspot at its stored `x-percent`/`y-percent`, labeled with the hotspot's `name` only. Lists active/inactive matches below the image with hover-to-highlight syncing between the list and the markers.
+- `src/pages/portal/photo-hotspots/review.astro` — page wrapper; accepts optional `?roomTypeId=&photoUrl=&photoFileId=` query params to deep-link straight to a specific photo.
+- Entry points wired up: "Review tags" link on the Photo Hotspots collection list page (`src/pages/portal/[slug].astro`) and a "Review tags" action on each Room Type gallery thumbnail (`src/components/MultiImageField.tsx`), which pre-fills the deep link for that exact photo.
+
+Verified with `npx astro check` — no type errors introduced (pre-existing unrelated errors remain in `api/cms/upload-image.ts`, `api/cms/[collectionId]/[itemId].ts`, and `api/cms/[collectionId]/[itemId]/publish.ts`, not touched by this change).
+
+Full field/flow documentation lives in `PHOTO_HOTSPOTS_ROOM_AMENITIES.md` under "Portal editing tools".
+
+---
 
 ### 🔴 → ✅ Fixed: Blank item editor pages / "Failed to fetch dynamically imported module"
 **Symptom**: Item editor pages (`/portal/[slug]/[itemId]`) intermittently rendered completely blank, with the browser console showing `astro-island Error hydrating /src/components/ItemEditor.tsx TypeError: Failed to fetch dynamically imported module`.
@@ -122,10 +156,10 @@ Replaced the full-width "No alt text" banner on `MultiImageField.tsx` thumbnails
 
 ### Environment Variables
 ```
-WEBFLOW_CMS_SITE_API_TOKEN=<user's token>
+WEBFLOW_CMS_API_TOKEN=<user's token>
 WEBFLOW_SITE_ID=6abc810fd801e90511049adb
 ```
-**Important**: Only `WEBFLOW_CMS_SITE_API_TOKEN` is used — no fallback to auto-generated tokens anywhere in the codebase.
+**Important**: Only `WEBFLOW_CMS_API_TOKEN` is used — resolved centrally via `getCmsToken(locals)` / `createCmsClient(locals)` in `src/lib/webflow-client.ts`, no fallback to any other token name anywhere in the codebase.
 
 ### Design Principles Applied
 - Minimalist UI: no gradients, glassmorphism, or excessive rounded corners
@@ -166,10 +200,10 @@ WEBFLOW_SITE_ID=6abc810fd801e90511049adb
 - React 19.1.1 for interactive components
 - TailwindCSS 4.1.11 for styling
 - shadcn/ui components pre-installed
-- `WebflowClient` from `webflow-api` package (v3.2.0)
-- All API calls use `WEBFLOW_CMS_SITE_API_TOKEN` from env
+- `WebflowClient` from `webflow-api` package (v3.2.0), instantiated exclusively via `createCmsClient(locals)` in `src/lib/webflow-client.ts`
+- All API calls authenticate with `WEBFLOW_CMS_API_TOKEN` from env (centralized token resolution, see `src/lib/webflow-client.ts`)
 - Base URL handling via `src/lib/base-url.ts` for Cloudflare deployment
-- `npx astro check` is clean (no errors/warnings) across all files touched this session
+- `npx astro check` is clean — 0 errors, 0 warnings across the entire project
 
 ### Documentation Files
 - `CMS_DOCUMENTATION_SUMMARY.md` — Executive summary
@@ -180,6 +214,10 @@ WEBFLOW_SITE_ID=6abc810fd801e90511049adb
 - `IMAGE_UPLOAD_GUIDE.md` — Image/MultiImage upload implementation guide
 - `cms-collections-documentation.json` — Raw API data
 - `PORTAL_STATUS.md` — This file (current status)
+
+
+
+
 
 
 

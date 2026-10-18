@@ -3,7 +3,6 @@
 
 
 
-
 ---
 import MainLayout from '../../layouts/main.astro';
 import { COLLECTIONS } from '../../lib/collections-config';
@@ -133,6 +132,18 @@ try {
                   <path d="M3 5h10M3 8h10M3 11h10" stroke-linecap="round"/>
                 </svg>
                 Reorder
+              </a>
+            )}
+            {slug === 'photo-hotspots' && (
+              <a
+                href={`${baseUrl}/portal/photo-hotspots/review`}
+                class="inline-flex items-center justify-center gap-2 border border-input bg-background text-foreground px-4 py-2.5 text-sm font-button hover:bg-muted/50 transition-colors min-h-[44px] w-full sm:w-auto"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="8" cy="8" r="2.5" stroke-linecap="round"/>
+                  <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5Z" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Review tags
               </a>
             )}
             <a 
@@ -370,6 +381,7 @@ try {
     });
   });
 </script>
+
 
 
 

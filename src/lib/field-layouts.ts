@@ -1,3 +1,4 @@
+
 // Field layout configuration for form rendering
 // Defines which fields should be grouped in rows vs full-width
 //
@@ -376,6 +377,25 @@ export const COLLECTION_LAYOUTS: Record<string, FieldRow[]> = {
     { fields: [{ slug: 'name', layout: 'full' }] },
     { fields: [{ slug: 'slug', layout: 'full' }] },
   ],
+
+  'photo-hotspots': [
+    { fields: [{ slug: 'name', layout: 'full' }] },
+    { fields: [{ slug: 'slug', layout: 'full' }] },
+    { fields: [{ slug: 'amenity', layout: 'full' }] },
+
+    { fields: [{ slug: 'photo-url', layout: 'full' }] },
+    { fields: [{ slug: 'photo-file-id', layout: 'full' }] },
+
+    { fields: [
+      { slug: 'x-percent', layout: 'half' },
+      { slug: 'y-percent', layout: 'half' }
+    ]},
+
+    { fields: [
+      { slug: 'display-order', layout: 'half' },
+      { slug: 'active', layout: 'half' }
+    ]},
+  ],
 };
 
 // Get layout for a specific field in a collection
@@ -452,4 +472,5 @@ export function getLayoutClasses(layout: FieldLayout): string {
       return 'col-span-12';
   }
 }
+
 

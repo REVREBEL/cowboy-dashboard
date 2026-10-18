@@ -1,6 +1,7 @@
 
 
 
+
 // Static collections configuration
 // This avoids needing sites:read scope
 
@@ -88,6 +89,14 @@ export const COLLECTIONS: CollectionConfig[] = [
     singularName: 'Add On',
     complexity: 'simple',
     sortField: 'sort'
+  },
+  {
+    id: '6acfb8250c28159487fb2aaf',
+    name: 'Photo Hotspots',
+    slug: 'photo-hotspots',
+    singularName: 'Photo Hotspot',
+    complexity: 'simple',
+    sortField: 'display-order'
   }
 ];
 
@@ -103,7 +112,7 @@ export function getCollectionById(id: string): CollectionConfig | undefined {
 export function getCollectionsByComplexity() {
   return {
     simple: COLLECTIONS.filter(c => 
-      ['menu-items', 'amenities', 'add-ons'].includes(c.slug) && c.complexity === 'simple'
+      ['menu-items', 'amenities', 'add-ons', 'photo-hotspots'].includes(c.slug) && c.complexity === 'simple'
     ),
     medium: COLLECTIONS.filter(c => 
       ['locations', 'buildings', 'instagram', 'outlets'].includes(c.slug) && c.complexity === 'core'
@@ -113,6 +122,7 @@ export function getCollectionsByComplexity() {
     )
   };
 }
+
 
 
 

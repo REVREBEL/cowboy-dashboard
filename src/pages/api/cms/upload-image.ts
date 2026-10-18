@@ -1,20 +1,23 @@
 import type { APIRoute } from 'astro';
-import { WebflowClient } from 'webflow-api';
 import crypto from 'crypto';
+import { createCmsClient } from '../../../lib/webflow-client';
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const token = locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || import.meta.env.WEBFLOW_CMS_API_TOKEN;
   const siteId = locals?.runtime?.env?.WEBFLOW_SITE_ID || import.meta.env.WEBFLOW_SITE_ID;
-  
-  if (!token) {
-    return new Response(JSON.stringify({ error: 'Missing API token' }), { 
+
+  if (!siteId) {
+    return new Response(JSON.stringify({ error: 'Missing site ID' }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  if (!siteId) {
-    return new Response(JSON.stringify({ error: 'Missing site ID' }), { 
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('CMS token error:', error);
+    return new Response(JSON.stringify({ error: 'Missing API token' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
@@ -54,13 +57,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const buffer = Buffer.from(arrayBuffer);
     const hash = crypto.createHash('md5').update(buffer).digest('hex');
 
-    // Initialize Webflow client
-    const baseUrl = locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-    const client = new WebflowClient({
-      accessToken: token,
-      ...(baseUrl && { baseUrl })
-    });
-
     // Step 1: Create asset and get S3 upload URL
     const assetResponse = await client.assets.create(siteId, {
       fileName: file.name,
@@ -71,6 +67,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const uploadDetails = assetResponse.uploadDetails;
     const uploadUrl = assetResponse.uploadUrl;
 
+    if (!uploadDetails || !uploadUrl) {
+      return new Response(JSON.stringify({ error: 'Webflow did not return upload details' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     // Create form data for S3 upload
     const s3FormData = new FormData();
     
@@ -79,7 +82,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (uploadDetails.xAmzCredential) s3FormData.append('X-Amz-Credential', uploadDetails.xAmzCredential);
     if (uploadDetails.xAmzDate) s3FormData.append('X-Amz-Date', uploadDetails.xAmzDate);
     if (uploadDetails.xAmzSignature) s3FormData.append('X-Amz-Signature', uploadDetails.xAmzSignature);
-    if (uploadDetails.xAmzSecurityToken) s3FormData.append('X-Amz-Security-Token', uploadDetails.xAmzSecurityToken);
     if (uploadDetails.successActionStatus) s3FormData.append('success_action_status', uploadDetails.successActionStatus);
     if (uploadDetails.contentType) s3FormData.append('Content-Type', uploadDetails.contentType);
     if (uploadDetails.cacheControl) s3FormData.append('Cache-Control', uploadDetails.cacheControl);
@@ -112,7 +114,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Return the asset information
     return new Response(JSON.stringify({
       fileId: assetResponse.id,
-      url: assetResponse.hostedUrl || assetResponse.s3Url,
+      url: assetResponse.hostedUrl || assetResponse.assetUrl,
       fileName: file.name,
     }), {
       status: 200,
@@ -130,3 +132,5 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 };
+
+

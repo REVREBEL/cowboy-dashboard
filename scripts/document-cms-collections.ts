@@ -20,12 +20,12 @@ async function documentCollections() {
     // Get site ID from token or use default
     const sites = await client.sites.list();
     
-    if (!sites || sites.sites.length === 0) {
+    if (!sites?.sites || sites.sites.length === 0) {
       console.error('❌ No sites found');
       return;
     }
     
-    const siteId = sites.sites[0].id;
+    const siteId = sites.sites[0]!.id;
     console.log(`📍 Site ID: ${siteId}\n`);
     
     // List all collections
@@ -59,8 +59,9 @@ async function documentCollections() {
           }
           
           // Additional type-specific info
-          if (field.type === 'Option' && field.validations?.options) {
-            console.log(`     - Options: ${field.validations.options.map((o: any) => o.name).join(', ')}`);
+          const validations = field.validations as { options?: Array<{ name: string }> } | undefined;
+          if (field.type === 'Option' && validations?.options) {
+            console.log(`     - Options: ${validations.options.map((o) => o.name).join(', ')}`);
           }
           
           console.log('');
@@ -76,7 +77,21 @@ async function documentCollections() {
     console.log('\n✅ Documentation complete!\n');
     
     // Create a JSON summary
-    const summary = collections.map(col => ({
+    interface FieldSummary {
+      slug?: string;
+      name?: string;
+      type?: string;
+      required?: boolean;
+      helpText: string | null;
+    }
+    interface CollectionSummary {
+      id: string;
+      name?: string;
+      slug?: string;
+      singularName?: string;
+      fields: FieldSummary[];
+    }
+    const summary: CollectionSummary[] = collections.map(col => ({
       id: col.id,
       name: col.displayName,
       slug: col.slug,
@@ -108,3 +123,4 @@ async function documentCollections() {
 }
 
 documentCollections();
+

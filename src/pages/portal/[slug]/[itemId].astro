@@ -3,6 +3,7 @@
 
 
 
+
 ---
 import MainLayout from '../../../layouts/main.astro';
 import { COLLECTIONS } from '../../../lib/collections-config';
@@ -45,6 +46,7 @@ const client = new WebflowClient({
 let item = null;
 let collectionDetails = null;
 let error = null;
+let hasUnpublishedChanges = false;
 
 console.log('Fetching item...');
 try {
@@ -53,6 +55,22 @@ try {
 } catch (e: any) {
   console.error('✗ Failed to fetch item:', e.message);
   error = `Failed to load item: ${e.message}`;
+}
+
+// Compare against the staged (draft) version to detect unpublished edits made
+// directly in Webflow's Designer/CMS Manager that haven't been published yet.
+if (item) {
+  try {
+    const stagedItem = await client.collections.items.getItem(collection.id, itemId!);
+    const liveFieldData = JSON.stringify(item.fieldData ?? {});
+    const stagedFieldData = JSON.stringify(stagedItem.fieldData ?? {});
+    hasUnpublishedChanges = liveFieldData !== stagedFieldData;
+    if (hasUnpublishedChanges) {
+      console.log('⚠ Item has unpublished changes in Webflow (staged differs from live)');
+    }
+  } catch (e: any) {
+    console.error('Could not compare staged vs live item:', e.message);
+  }
 }
 
 if (item) {
@@ -129,6 +147,13 @@ if (!item || !collectionDetails) {
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      {hasUnpublishedChanges && (
+        <div class="border border-amber-400 bg-amber-50 text-amber-900 px-4 py-3 mb-6 rounded">
+          <p class="text-sm font-body">
+            <strong>Heads up:</strong> This item has unsaved edits made directly in Webflow (Designer or CMS Manager) that haven't been published yet. The values shown below are from the last <strong>published</strong> version. Publish the item in Webflow to see the latest values here, or edit and save here to overwrite with your changes.
+          </p>
+        </div>
+      )}
       {error ? (
         <div class="border border-destructive bg-destructive/10 px-4 py-3 mb-6">
           <p class="text-sm text-destructive font-body">
@@ -158,6 +183,7 @@ if (!item || !collectionDetails) {
     letter-spacing: -0.015em;
   }
 </style>
+
 
 
 

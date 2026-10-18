@@ -1,23 +1,21 @@
 import type { APIRoute } from 'astro';
-import { WebflowClient } from 'webflow-api';
+import { createCmsClient } from '../../../../../lib/webflow-client';
 
 export const POST: APIRoute = async ({ params, locals }) => {
-  const token =
-    locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN ||
-    import.meta.env.WEBFLOW_CMS_API_TOKEN;
-  if (!token) return new Response('Missing token', { status: 500 });
-
-  const baseUrl =
-    locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-  const client = new WebflowClient({
-    accessToken: token,
-    ...(baseUrl && { baseUrl }),
-  });
+  let client;
+  try {
+    client = createCmsClient(locals);
+  } catch (error) {
+    console.error('CMS token error:', error);
+    return new Response('Missing token', { status: 500 });
+  }
 
   const { collectionId, itemId } = params;
 
   try {
-    await client.collections.items.publishItem(collectionId!, itemId!);
+    await client.collections.items.publishItem(collectionId!, {
+      itemIds: [itemId!],
+    });
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
