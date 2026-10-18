@@ -1,3 +1,4 @@
+
 # Image Upload & Edit Feature
 
 ## Overview
@@ -41,6 +42,17 @@ The CMS portal now supports full image upload and editing capabilities for all i
 - `POST /api/cms/upload-image` - Handles file upload to Webflow Assets
 - `PATCH /api/cms/[collectionId]/[itemId]` - Saves image data to CMS item
 
+#### Authentication
+`POST /api/cms/upload-image` authenticates the same way as every other CMS
+route: it calls `createCmsClient(locals)` from `src/lib/webflow-client.ts`,
+which resolves the `WEBFLOW_CMS_API_TOKEN` environment variable (checking
+`locals.runtime.env` first, then falling back to `import.meta.env` for local
+dev) and constructs an authenticated `WebflowClient` instance. If the token
+is missing, the route returns a `500` with `{ error: 'Missing API token' }`
+before attempting any upload. No other token name or ad hoc env lookup is
+used for image uploads — see "Core utilities" in `README.md` for the shared
+helper's full behavior.
+
 #### Image Data Format
 Images are stored in Webflow's standard format:
 ```json
@@ -72,3 +84,4 @@ Images are stored in Webflow's standard format:
 - Multiple image upload
 - Image optimization on upload
 - CDN integration for faster loading
+

@@ -1,3 +1,5 @@
+
+
 # CMS Client Portal - Technical Specification
 
 ## Overview
@@ -10,7 +12,7 @@ This document outlines the technical requirements for building a client portal t
 - **Site ID:** `6aaa2497c8ea366207beba30`
 - **Total Collections:** 9
 - **API Base:** Configured via `WEBFLOW_API_HOST`
-- **Authentication:** `WEBFLOW_CMS_SITE_API_TOKEN`
+- **Authentication:** `WEBFLOW_CMS_API_TOKEN` (resolved centrally via `getCmsToken(locals)` / `createCmsClient(locals)` in `src/lib/webflow-client.ts` — see "Core utilities" in `README.md`)
 
 ---
 
@@ -200,6 +202,76 @@ This document outlines the technical requirements for building a client portal t
 
 ---
 
+### 10. Photo Hotspots (`6acfb8250c28159487fb2aaf`)
+**Purpose:** Pin individual Amenity markers to exact X/Y positions on a Room
+Type photo, powering the on-image "Little Comforts" callouts in the live
+booking engine.
+**Fields:** 9
+**Key Features:**
+- One CMS item per marker (not per photo) — a single photo can have any
+  number of Photo Hotspot items pointing at it
+- Coordinates stored as percentages of the rendered photo (`0`–`100`), so
+  markers stay aligned across screen sizes and aspect ratios
+- Scoped to the parent Room Type: the `amenity` reference dropdown only
+  offers amenities already assigned to that Room Type via its
+  `features-amenities` field
+- Draft items and unpublished parents (Amenity/Room Type) are invisible to
+  the live Worker — publishing is mandatory, not just saving
+
+**Critical Fields:**
+- `name` (auto-generated, e.g. `"The Cabin Rooms - Copper Clawfoot Soaking Tub"`)
+- `slug` (auto-generated, unique per room type + amenity + photo)
+- `amenity` (Reference → Amenities)
+- `photo-url` (Link) — published Webflow CDN photo URL
+- `photo-file-id` (PlainText) — stable Webflow asset file ID; preferred over `photo-url` when both are present
+- `x-percent` (Number, 0–100) — horizontal position
+- `y-percent` (Number, 0–100) — vertical position
+- `display-order` (Number) — 1-based order for numbered medallions/mobile cards
+- `active` (Switch) — only active, published markers render for guests
+
+#### Multi-marker tagging flow (portal UX)
+Editing a single hotspot at a time was slow when a photo needed several
+callouts, so the portal item editor (`src/components/ItemEditor.tsx`)
+supports tagging **all markers for a photo in one sitting**:
+
+1. From a Room Type's photo gallery (`MultiImageField.tsx`) or the Photo
+   Hotspots item editor, the editor opens a **"Tag amenity hotspots"**
+   dialog (`src/components/MultiHotspotTagger.tsx`) for the selected photo.
+2. The dialog resolves the photo's parent Room Type (`findRoomTypeIdForPhoto`)
+   and scopes the amenity picker to only that Room Type's assigned amenities
+   (`extractAmenityIds`) — identical scoping logic to the single-hotspot flow,
+   so bulk tagging can never attach an amenity the room doesn't actually have.
+3. The editor clicks anywhere on the rendered photo to drop a numbered pin;
+   pins can be dragged to adjust position and each is assigned an amenity
+   from the scoped dropdown. Pins can be added, repositioned, reassigned, or
+   removed freely before saving — nothing is written to the CMS until submit.
+4. On submit, one `fieldData` payload is built per marker (auto-generated
+   `name`/`slug`, `display-order`, `x-percent`/`y-percent`, `photo-url`,
+   `photo-file-id`, `active: true`).
+
+#### Bulk save & publish behavior
+All markers tagged in a single session are saved in **one network
+round-trip** via `POST /api/cms/[collectionId]/bulk`
+(`src/pages/api/cms/[collectionId]/bulk.ts`):
+- The full array of `{ items: [{ fieldData }, ...] }` is sent in a single
+  request body.
+- The route creates every item in one call to
+  `client.collections.items.createItems()` (draft state), then immediately
+  publishes all of the newly created item IDs live in a single call to
+  `client.collections.items.publishItem({ itemIds })` — matching the
+  create-then-publish behavior of the single-item flow, so a whole batch of
+  markers goes live together instead of one at a time.
+- If the publish step fails after items are created, the error is logged but
+  the create response still returns `201` with the created (draft) items, so
+  the editor can retry publishing rather than losing the newly tagged markers.
+- Authenticates via the shared `createCmsClient(locals)` factory, the same as
+  every other CMS API route.
+
+See `HOTSPOT_ARCHITECTURE_REF.md` and `PHOTO_HOTSPOTS_ROOM_AMENITIES.md` for
+the full architecture reference and content-lifecycle notes.
+
+---
+
 ## Collection Relationships
 
 ```
@@ -217,6 +289,10 @@ Buildings
 Amenities
 ├── Locations (reverse reference)
 └── Room Types (reverse reference)
+
+Photo Hotspots
+├── Amenity (reference, scoped to the parent Room Type's features-amenities)
+└── Room Types (via photo-file-id / photo-url on a gallery image)
 ```
 
 ---
@@ -369,3 +445,5 @@ Amenities
 - The Locations collection is central to most other collections
 - Image fields often have specific dimension requirements
 - Some fields have validation rules (min/max values, required formats)
+
+

@@ -1,8 +1,10 @@
+
+
 # CMS Collections Documentation
 
 **Site:** Urban Cowboy Mockup  
 **Site ID:** `6aaa2497c8ea366207beba30`  
-**Total Collections:** 9
+**Total Collections:** 10
 
 ---
 
@@ -19,6 +21,7 @@
 | Buildings | buildings | 8 | 6abc819c43b4b395a2b80752 |
 | Outlets | outlets | 24 | (see below) |
 | Instagrams | instagram | 11 | (see below) |
+| Photo Hotspots | photo-hotspots | 9 | 6acfb8250c28159487fb2aaf |
 
 ---
 
@@ -186,6 +189,45 @@ Key fields include:
 
 ---
 
+### 10. Photo Hotspots Collection
+**ID:** `6acfb8250c28159487fb2aaf`  
+**Slug:** `photo-hotspots`  
+**Total Fields:** 9
+
+One CMS item represents a single Amenity marker pinned to an X/Y position
+on a Room Type photo — not one item per photo. A single photo can have any
+number of Photo Hotspot items pointing at it.
+
+Key fields include:
+- Name (auto-generated, PlainText)
+- Slug (auto-generated, unique per room type + amenity + photo)
+- Amenity (Reference to Amenities collection, scoped to the parent Room
+  Type's assigned amenities)
+- Photo URL (Link) — published Webflow CDN photo URL
+- Photo File ID (PlainText) — stable Webflow asset file ID, preferred over
+  Photo URL when both are present
+- X Percent / Y Percent (Number, 0–100) — marker position as a percentage
+  of the rendered photo
+- Display Order (Number) — 1-based order for numbered medallions/mobile
+  cards
+- Active status (Switch)
+
+**Bulk API endpoint support:** Unlike the other collections in this
+document, Photo Hotspots items are typically created in batches (one
+request per photo, many markers per request) rather than one at a time.
+The portal's multi-marker tagging flow (`MultiHotspotTagger.tsx`) saves all
+markers tagged on a photo in a single round-trip to
+`POST /api/cms/[collectionId]/bulk`
+(`src/pages/api/cms/[collectionId]/bulk.ts`), which creates every item via
+one call to `client.collections.items.createItems()` and then publishes all
+of the new item IDs live via one call to
+`client.collections.items.publishItem({ itemIds })`. This endpoint is
+authenticated the same way as every other CMS route, via the shared
+`createCmsClient(locals)` factory. See `PORTAL_SPECIFICATION.md` for the
+full bulk save & publish behavior, including partial-failure handling.
+
+---
+
 ## Field Type Reference
 
 ### Common Field Types:
@@ -247,3 +289,5 @@ Based on this documentation, the client portal needs to support:
 5. Implement image upload functionality
 6. Add filtering and search capabilities
 7. Implement user authentication/authorization
+
+
