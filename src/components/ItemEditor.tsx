@@ -5,8 +5,8 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { toast } from 'sonner';
-import { Info, Loader2 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Info, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 import { organizeFieldsByGroup } from '../lib/field-groups';
 import { getFieldRows, getLayoutClasses } from '../lib/field-layouts';
 import { COLLECTIONS } from '../lib/collections-config';
@@ -67,6 +67,8 @@ interface ReferenceOption {
 interface ItemEditorProps {
   collectionId: string;
   collectionSlug: string;
+  /** Human-readable collection name, used in the header banner's back link. */
+  collectionName: string;
   itemId: string;
   fields: Field[];
   initialData: Record<string, any>;
@@ -149,6 +151,7 @@ function FieldLabel({
 export default function ItemEditor({ 
   collectionId,
   collectionSlug,
+  collectionName,
   itemId, 
   fields: rawFields, 
   initialData,
@@ -182,6 +185,7 @@ export default function ItemEditor({
   // MultiHotspotTagger + the bulk-create API) instead of the old
   // one-hotspot-per-page-navigation flow.
   const [taggerImage, setTaggerImage] = useState<ImageData | null>(null);
+  const [isAmenitiesCollapsed, setIsAmenitiesCollapsed] = useState(true);
   const PHOTO_HOTSPOTS_COLLECTION = React.useMemo(
     () => COLLECTIONS.find(c => c.slug === 'photo-hotspots'),
     []
@@ -801,7 +805,8 @@ export default function ItemEditor({
       case 'Option':
         const options: Array<{ id: string; name: string }> = field.validations?.options || [];
         const isColorField = field.slug === 'button-color' || field.slug === 'text-color';
-        
+        const isReviewSourceField = field.slug === 'review-source';
+
         return (
           <div key={field.slug} className="space-y-2">
             <FieldLabel 
@@ -810,7 +815,13 @@ export default function ItemEditor({
               isRequired={field.required}
               helpText={field.helpText}
             />
-            <div className={isColorField ? "grid grid-cols-2 sm:grid-cols-3 gap-2" : "flex flex-wrap gap-2"}>
+            <div className={
+              isColorField
+                ? "grid grid-cols-2 sm:grid-cols-3 gap-2"
+                : isReviewSourceField
+                  ? "flex flex-col gap-2 w-full"
+                  : "flex flex-wrap gap-2"
+            }>
               {options.map((option: { id: string; name: string }) => {
                 const normalizedName = option.name.toLowerCase().replace(/\s+/g, '-');
                 const colorHex = isColorField ? COLOR_MAP[normalizedName] : null;
@@ -821,6 +832,8 @@ export default function ItemEditor({
                     type="button"
                     onClick={() => handleChange(field.slug, option.id)}
                     className={`px-3 py-2 border font-body text-sm transition-colors flex items-center gap-2 ${
+                      isReviewSourceField ? 'w-full text-left justify-start' : ''
+                    } ${
                       value === option.id
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-background text-foreground border-border hover:bg-muted'
@@ -1003,7 +1016,11 @@ export default function ItemEditor({
   };
 
   // Organize fields by group
-  const organizedFields = organizeFieldsByGroup(collectionSlug, fields);
+  // Exclude the top-level `active` field from grouped/row layout — it now
+  // renders in its own status banner at the top of the editor instead of
+  // inline within a group (e.g. "Settings" / "Visibility" / "Display").
+  const groupableFields = fields.filter(f => f.slug !== 'active');
+  const organizedFields = organizeFieldsByGroup(collectionSlug, groupableFields);
 
   console.log('Organized fields:', organizedFields.map(g => g.name));
   console.log('Field groups:', organizedFields.map(g => `${g.name}: ${g.fields.length}`));
@@ -1020,14 +1037,73 @@ export default function ItemEditor({
   }
   
   // Get field rows for layout
-  const fieldRows = getFieldRows(collectionSlug, fields);
+  const fieldRows = getFieldRows(collectionSlug, groupableFields);
   
   // Create a map of field slug to field object for quick lookup
   const fieldMap = new Map(fields.map(f => [f.slug, f]));
 
+  // Does this collection have a top-level `active` field? If so, surface it
+  // as a status toggle in the banner at the top of the editor instead of
+  // buried inside a group.
+  const activeStatusField = fieldMap.get('active');
+  const isNewItemPage = itemId === 'new';
+
+  const activeToggleControl = activeStatusField ? (
+    <div className="flex items-center gap-2 sm:flex-shrink-0">
+      <Label htmlFor="active" className="font-body text-sm font-medium text-foreground">
+        Active
+      </Label>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+          </TooltipTrigger>
+          <TooltipContent>
+            {formData.active === true
+              ? 'This item is active and visible.'
+              : 'Inactive items are hidden from public views.'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <Switch
+        id="active"
+        checked={formData.active === true}
+        onCheckedChange={(checked) => handleChange('active', checked)}
+      />
+    </div>
+  ) : null;
+
   return (
     <>
     <form onSubmit={handleSubmit} className="w-full">
+        {isNewItemPage ? (
+          activeToggleControl && (
+            <div className="flex items-center justify-end mb-6">
+              {activeToggleControl}
+            </div>
+          )
+        ) : (
+          <div className="bg-[#f4f0ea] p-6 border-b mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <a
+                href={`${baseUrl}/portal/${collectionSlug}`}
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-3"
+              >
+                <span className="mr-1">‹</span>
+                {collectionName}
+              </a>
+              <h1 className="font-heading text-2xl sm:text-3xl text-foreground mb-1.5 break-words">
+                {formData.name || initialData?.name}
+              </h1>
+              <p className="text-sm text-muted-foreground font-mono break-all">
+                {formData.slug || initialData?.slug}
+              </p>
+            </div>
+
+            {activeToggleControl}
+          </div>
+        )}
+
         {error && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive text-destructive font-body text-sm">
             {error}
@@ -1064,12 +1140,71 @@ export default function ItemEditor({
             // hand-copying URLs/file ids from the Designer.
             const isPhotoHotspotPhotoGroup = collectionSlug === 'photo-hotspots' && group.name === 'Photo';
 
+            // Special handling for the Room Types "Details" section: split
+            // numeric/text/option specs from boolean switch toggles into a
+            // clean 2-column layout instead of the default row-based grid.
+            const isRoomDetails = collectionSlug === 'room-types' && group.name === 'Details';
+            const roomDetailsSwitchSlugs = new Set(['suite', 'room', 'component-room']);
+            const roomDetailsRightColumnSlugs = new Set(['bed-type', ...roomDetailsSwitchSlugs]);
+            const roomDetailsSpecFields = isRoomDetails
+              ? group.fields
+                  .filter(f => !roomDetailsRightColumnSlugs.has(f.slug))
+                  .map(f => fieldMap.get(f.slug))
+                  .filter((f): f is NonNullable<typeof f> => !!f)
+              : [];
+            const roomDetailsSwitchFields = isRoomDetails
+              ? ['bed-type', ...roomDetailsSwitchSlugs]
+                  .map(slug => fieldMap.get(slug))
+                  .filter((f): f is NonNullable<typeof f> => !!f && group.fields.some(gf => gf.slug === f.slug))
+              : [];
+
+            // Special handling for the Room Types "Reviews" section: text/
+            // input fields stack in a left column, while the "Review Source"
+            // option field gets its own bordered column with full-width,
+            // vertically stacked choice buttons.
+            const isReviewsSection = collectionSlug === 'room-types' && group.name === 'Reviews';
+            const reviewsLeftSlugs = ['review', 'review-date', 'review-url', 'reviewer-name-or-handle'];
+            const reviewsLeftFields = isReviewsSection
+              ? reviewsLeftSlugs
+                  .map(slug => fieldMap.get(slug))
+                  .filter((f): f is NonNullable<typeof f> => !!f && groupFieldSlugs.has(f.slug))
+              : [];
+            const reviewsRightField = isReviewsSection ? fieldMap.get('review-source') : undefined;
+
+            // Special handling for the Room Types "Amenities & Policies"
+            // section: collapsed by default with an expand/collapse control
+            // in the header so the editor form feels less overwhelming.
+            const isAmenitiesSection = collectionSlug === 'room-types' && group.name === 'Amenities & Policies';
+
             return (
               <section key={group.name} className="space-y-6">
-                <div className="pb-3 border-b border-border">
-                  <h2 className="font-heading text-base font-semibold text-foreground">{group.name}</h2>
-                  {group.description && (
-                    <p className="text-sm text-muted-foreground font-body mt-1">{group.description}</p>
+                <div className="pb-3 border-b border-border flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="font-heading text-base font-semibold text-foreground">{group.name}</h2>
+                    {group.description && (
+                      <p className="text-sm text-muted-foreground font-body mt-1">{group.description}</p>
+                    )}
+                  </div>
+                  {isAmenitiesSection && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsAmenitiesCollapsed(prev => !prev)}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                    >
+                      {isAmenitiesCollapsed ? (
+                        <>
+                          Expand
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </>
+                      ) : (
+                        <>
+                          Collapse
+                          <ChevronUp className="h-3.5 w-3.5" />
+                        </>
+                      )}
+                    </Button>
                   )}
                 </div>
                 
@@ -1094,21 +1229,53 @@ export default function ItemEditor({
                     })()}
                   </div>
                 ) : isVisibility ? (
-                  // Special layout for Visibility: Active first, then Member Only
+                  // "Active" now lives in the header status banner, so this
+                  // section just renders whatever visibility fields remain
+                  // (e.g. Member Only).
                   <div className="space-y-6">
-                    {/* Render Active first */}
-                    {(() => {
-                      const activeField = group.fields.find(f => f.slug === 'active');
-                      return activeField ? renderField(activeField) : null;
-                    })()}
-                    
-                    {/* Render Member Only second */}
                     {(() => {
                       const memberOnlyField = group.fields.find(f => f.slug === 'member-only');
                       return memberOnlyField ? renderField(memberOnlyField) : null;
                     })()}
                   </div>
+                ) : isRoomDetails ? (
+                  // Clean 2-column layout: specs on the left, bed type +
+                  // toggles on the right (bed type sits above the switches)
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                    <div className="flex flex-col gap-4">
+                      {roomDetailsSpecFields.map(field => renderField(field))}
+                    </div>
+                    <div className="flex flex-col gap-4 pl-6 border-l border-border">
+                      {roomDetailsSwitchFields
+                        .filter(field => field.slug === 'bed-type')
+                        .map(field => renderField(field))}
+                      <div className="flex flex-col gap-2 mt-8 pt-2">
+                        {roomDetailsSwitchFields
+                          .filter(field => roomDetailsSwitchSlugs.has(field.slug))
+                          .map(field => renderField(field))}
+                      </div>
+                    </div>
+                  </div>
+                ) : isReviewsSection ? (
+                  // 12-column layout on desktop: text/input fields take up
+                  // 3/4 of the width on the left, "Review Source" option
+                  // buttons stack vertically on the right in a narrower,
+                  // bordered card with a minimum width so options stay
+                  // readable.
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-4">
+                      {reviewsLeftFields.map(field => renderField(field))}
+                    </div>
+                    <div className="lg:col-span-4 xl:col-span-3 min-w-[220px] flex flex-col gap-4 p-4 rounded-lg border bg-muted/20">
+                      {reviewsRightField && (
+                        <div className="flex flex-col gap-2 w-full">
+                          {renderField(reviewsRightField)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ) : (
+                  (!isAmenitiesSection || !isAmenitiesCollapsed) && (
                   <div className="space-y-6">
                     {/* Show active toggle first if collapsible */}
                     {isCollapsible && activeField && (
@@ -1183,6 +1350,7 @@ export default function ItemEditor({
                       );
                     })}
                   </div>
+                  )
                 )}
               </section>
             );
@@ -1233,6 +1401,24 @@ export default function ItemEditor({
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

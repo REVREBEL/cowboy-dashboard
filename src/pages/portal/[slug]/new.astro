@@ -2,6 +2,7 @@
 
 
 
+
 ---
 import MainLayout from '../../../layouts/main.astro';
 import { COLLECTIONS } from '../../../lib/collections-config';
@@ -137,6 +138,7 @@ if (!collectionDetails) {
           client:only="react"
           collectionId={collection.id}
           collectionSlug={collection.slug}
+          collectionName={collection.name}
           itemId="new"
           fields={collectionDetails.fields as any}
           initialData={initialData}
@@ -156,6 +158,7 @@ if (!collectionDetails) {
     letter-spacing: -0.015em;
   }
 </style>
+
 
 
 

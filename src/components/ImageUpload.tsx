@@ -48,6 +48,13 @@ export default function ImageUpload({
     }
   };
 
+  const requestRemove = () => {
+    if (typeof window !== 'undefined' && !window.confirm('Are you sure you want to remove this photo?')) {
+      return;
+    }
+    handleRemove();
+  };
+
   const uploadFile = async (file: File) => {
     setUploading(true);
     setError(null);
@@ -169,9 +176,10 @@ export default function ImageUpload({
             </div>
             <button
               type="button"
-              onClick={handleRemove}
-              className="absolute top-2 right-2 bg-destructive text-destructive-foreground p-1.5 hover:bg-destructive/90 transition-colors"
+              onClick={requestRemove}
+              className="absolute top-2 right-2 bg-black/60 text-white hover:bg-destructive hover:text-destructive-foreground transition-colors p-1.5 rounded-full"
               title="Remove image"
+              aria-label="Remove image"
             >
               <X className="h-4 w-4" />
             </button>
@@ -228,6 +236,4 @@ export default function ImageUpload({
     </div>
   );
 }
-
-
 

@@ -162,12 +162,14 @@ export default function MultiImageField({
       <Header displayName={label} isRequired={required} helpText={helpText} />
 
       {onTagHotspot && (
-        <p className="flex items-center gap-1.5 text-xs font-body text-muted-foreground bg-accent/10 border border-accent/20 px-2.5 py-1.5 rounded">
-          <MapPin className="h-3.5 w-3.5 text-accent shrink-0" strokeWidth={2.5} />
-          Click a photo to see every amenity already tagged on it, all at once. Use the{' '}
-          <span className="font-medium text-foreground">Tag</span> badge (or "Tag amenity
-          hotspot" inside the photo) to mark a new spot.
-        </p>
+        <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/40 border">
+          <MapPin className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" strokeWidth={2.5} />
+          <p className="text-sm text-muted-foreground leading-normal">
+            Click a photo to see every amenity already tagged on it, all at once. Use the
+            <span className="inline-flex items-center align-middle px-1.5 py-0.5 mx-1 text-xs font-semibold rounded bg-secondary text-secondary-foreground">Tag</span>
+            badge (or "Tag amenity hotspot" inside the photo) to mark a new spot.
+          </p>
+        </div>
       )}
 
       {/* Thumbnail grid: 5 per row, wraps */}
@@ -398,54 +400,60 @@ export default function MultiImageField({
             </div>
           )}
 
-          <DialogFooter className="sm:justify-between">
+          <DialogFooter className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={handleRemoveActive}
-              className="text-destructive hover:text-destructive font-button"
+              className="text-destructive hover:text-destructive font-button shrink-0 w-full sm:w-auto sm:mr-auto"
             >
               <X className="h-4 w-4 mr-1.5" />
               Remove image
             </Button>
-            <div className="flex gap-2">
-              {onTagHotspot && activeImage && (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    onTagHotspot(activeImage);
-                    closeModal();
-                  }}
-                  className="font-button bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  <MapPin className="h-4 w-4 mr-1.5" />
-                  Tag amenity hotspot
-                </Button>
-              )}
-              {onReviewHotspots && activeImage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    onReviewHotspots(activeImage);
-                    closeModal();
-                  }}
-                  className="font-button"
-                >
-                  <Tags className="h-4 w-4 mr-1.5" />
-                  Review tags
-                </Button>
-              )}
-              <Button type="button" variant={onTagHotspot ? 'outline' : 'default'} onClick={closeModal} className="font-button">
-                Done
+            {onTagHotspot && activeImage && (
+              <Button
+                type="button"
+                onClick={() => {
+                  onTagHotspot(activeImage);
+                  closeModal();
+                }}
+                className="font-button bg-accent text-accent-foreground hover:bg-accent/90 shrink-0 w-full sm:w-auto"
+              >
+                <MapPin className="h-4 w-4 mr-1.5" />
+                Tag amenity hotspot
               </Button>
-            </div>
+            )}
+            {onReviewHotspots && activeImage && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  onReviewHotspots(activeImage);
+                  closeModal();
+                }}
+                className="font-button shrink-0 w-full sm:w-auto"
+              >
+                <Tags className="h-4 w-4 mr-1.5" />
+                Review tags
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant={onTagHotspot ? 'outline' : 'default'}
+              onClick={closeModal}
+              className="font-button shrink-0 w-full sm:w-auto"
+            >
+              Done
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
+
+
 
 
 
