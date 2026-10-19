@@ -5,7 +5,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { toast } from 'sonner';
-import { Info, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Info, Loader2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 import { organizeFieldsByGroup } from '../lib/field-groups';
 import { getFieldRows, getLayoutClasses } from '../lib/field-layouts';
@@ -15,6 +15,7 @@ import MultiImageField from './MultiImageField';
 import HotspotPicker from './HotspotPicker';
 import MultiHotspotTagger, { type HotspotMarker, type AmenityOption } from './MultiHotspotTagger';
 import RoomPhotoPicker from './RoomPhotoPicker';
+import AmenitySortingGrid from './AmenitySortingGrid';
 import type { ImageData } from '../lib/image-upload-client';
 import {
   ROOM_TYPES_COLLECTION_ID,
@@ -62,6 +63,10 @@ interface ReferenceOption {
   // Raw option id of the referenced item's `type` field (only populated for
   // collections that have one, e.g. the shared Amenities collection).
   type?: string | null;
+  // Thumbnail image (only populated for collections that have one, e.g. the
+  // shared Amenities collection) — used by the Amenity display-order
+  // sorting grid on Room Types.
+  image?: { url: string } | null;
 }
 
 interface ItemEditorProps {
@@ -341,12 +346,17 @@ export default function ItemEditor({
               const res = await fetch(`${baseUrl}/api/cms/${refCollectionId}?limit=${limit}&offset=${offset}`);
               if (!res.ok) break;
               const data = await res.json() as {
-                items?: Array<{ id: string; fieldData?: { name?: string; type?: string | null } }>;
+                items?: Array<{ id: string; fieldData?: { name?: string; type?: string | null; image?: { url: string } | null } }>;
                 pagination?: { total?: number };
               };
               const pageItems = data.items || [];
               pageItems.forEach(it => {
-                items.push({ id: it.id, name: it.fieldData?.name || it.id, type: it.fieldData?.type ?? null });
+                items.push({
+                  id: it.id,
+                  name: it.fieldData?.name || it.id,
+                  type: it.fieldData?.type ?? null,
+                  image: it.fieldData?.image ?? null,
+                });
               });
               total = data.pagination?.total ?? pageItems.length;
               offset += limit;
@@ -577,6 +587,10 @@ export default function ItemEditor({
         const isSingleLine = field.validations?.singleLine !== false;
         const isCallToAction = field.slug === 'call-to-action';
         const inputSizeClass = isCallToAction ? 'input-sm' : 'input-xs';
+        const isReadOnlyField = field.slug === 'slug' || field.slug === 'mews-image-ids';
+        const readOnlyClass = isReadOnlyField
+          ? 'bg-muted/50 cursor-not-allowed text-muted-foreground'
+          : '';
         
         if (!isSingleLine) {
           // Multi-line plain text
@@ -594,7 +608,9 @@ export default function ItemEditor({
                 onChange={(e) => handleChange(field.slug, e.target.value)}
                 required={field.required}
                 rows={4}
-                className={`font-body resize-y ${inputSizeClass}`}
+                readOnly={isReadOnlyField}
+                disabled={isReadOnlyField}
+                className={`font-body resize-y ${inputSizeClass} ${readOnlyClass}`}
               />
             </div>
           );
@@ -615,7 +631,9 @@ export default function ItemEditor({
               value={value || ''}
               onChange={(e) => handleChange(field.slug, e.target.value)}
               required={field.required}
-              className={`font-body ${inputSizeClass}`}
+              readOnly={isReadOnlyField}
+              disabled={isReadOnlyField}
+              className={`font-body ${inputSizeClass} ${readOnlyClass}`}
             />
           </div>
         );
@@ -798,7 +816,6 @@ export default function ItemEditor({
             label={field.displayName}
             required={field.required}
             helpText={field.helpText}
-            onTagHotspot={canTagHotspot ? handleTagHotspot : undefined}
           />
         );
 
@@ -1186,25 +1203,36 @@ export default function ItemEditor({
                     )}
                   </div>
                   {isAmenitiesSection && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsAmenitiesCollapsed(prev => !prev)}
-                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
-                    >
-                      {isAmenitiesCollapsed ? (
-                        <>
-                          Expand
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        </>
-                      ) : (
-                        <>
-                          Collapse
-                          <ChevronUp className="h-3.5 w-3.5" />
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <a
+                        href={`${baseUrl}/portal/amenities`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span>Go to Features &amp; Amenities</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsAmenitiesCollapsed(prev => !prev)}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0"
+                      >
+                        {isAmenitiesCollapsed ? (
+                          <>
+                            Expand
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </>
+                        ) : (
+                          <>
+                            Collapse
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   )}
                 </div>
                 
@@ -1262,11 +1290,11 @@ export default function ItemEditor({
                   // buttons stack vertically on the right in a narrower,
                   // bordered card with a minimum width so options stay
                   // readable.
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                    <div className="md:col-span-8 lg:col-span-9 flex flex-col gap-4">
                       {reviewsLeftFields.map(field => renderField(field))}
                     </div>
-                    <div className="lg:col-span-4 xl:col-span-3 min-w-[220px] flex flex-col gap-4 p-4 rounded-lg border bg-muted/20">
+                    <div className="md:col-span-4 lg:col-span-3 min-w-[200px] flex flex-col gap-4 p-4 rounded-lg border bg-muted/20">
                       {reviewsRightField && (
                         <div className="flex flex-col gap-2 w-full">
                           {renderField(reviewsRightField)}
@@ -1274,7 +1302,35 @@ export default function ItemEditor({
                       )}
                     </div>
                   </div>
-                ) : (
+                ) : isAmenitiesSection ? (() => {
+                  const featuresField = fieldMap.get('features-amenities');
+                  const policiesField = fieldMap.get('policies');
+                  const selectedAmenityIds: string[] = Array.isArray(formData['features-amenities'])
+                    ? formData['features-amenities']
+                    : [];
+
+                  return (
+                    <div className="space-y-6">
+                      {!isAmenitiesCollapsed && (
+                        <div className="space-y-6">
+                          {featuresField && renderField(featuresField)}
+                          {policiesField && renderField(policiesField)}
+                        </div>
+                      )}
+                      <div className="mt-6 pt-4 border-t">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                          Amenity Display Order
+                        </h4>
+                        <AmenitySortingGrid
+                          selectedIds={selectedAmenityIds}
+                          orderValue={typeof formData['amenity-display-order'] === 'string' ? formData['amenity-display-order'] : ''}
+                          amenityOptions={referenceOptions[AMENITIES_COLLECTION_ID] || []}
+                          onChange={(orderedIds) => handleChange('amenity-display-order', orderedIds.join(', '))}
+                        />
+                      </div>
+                    </div>
+                  );
+                })() : (
                   (!isAmenitiesSection || !isAmenitiesCollapsed) && (
                   <div className="space-y-6">
                     {/* Show active toggle first if collapsible */}
@@ -1401,6 +1457,16 @@ export default function ItemEditor({
     </>
   );
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

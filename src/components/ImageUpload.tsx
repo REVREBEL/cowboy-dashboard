@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, MapPin } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -12,8 +12,6 @@ interface ImageUploadProps {
   label: string;
   required?: boolean;
   helpText?: string;
-  /** When provided, shows a "Tag hotspot" action that hands this image off to the Photo Hotspots flow. */
-  onTagHotspot?: (image: ImageData) => void;
 }
 
 export default function ImageUpload({
@@ -22,7 +20,6 @@ export default function ImageUpload({
   label,
   required,
   helpText,
-  onTagHotspot,
 }: ImageUploadProps) {
   const [altText, setAltText] = useState(value?.alt || '');
   const [uploading, setUploading] = useState(false);
@@ -211,18 +208,6 @@ export default function ImageUpload({
             >
               Replace Image
             </Button>
-            {onTagHotspot && value?.url && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => onTagHotspot(value)}
-                className="font-button"
-              >
-                <MapPin className="h-3.5 w-3.5 mr-1.5" />
-                Tag amenity hotspot
-              </Button>
-            )}
           </div>
           <input
             ref={fileInputRef}
@@ -236,4 +221,5 @@ export default function ImageUpload({
     </div>
   );
 }
+
 
