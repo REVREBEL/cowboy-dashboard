@@ -36,9 +36,17 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       }
     }
 
+    // The webflow-api SDK's bulk create endpoint expects a single top-level
+    // `fieldData` key whose value is an *array* of plain fieldData objects —
+    // NOT an `items` array of `{ fieldData: {...} }` wrappers. Passing
+    // `{ items }` straight through results in Webflow's API rejecting the
+    // request with "Missing required key 'fieldData'" since it never finds
+    // a top-level `fieldData` key in the payload.
+    const fieldData = items.map((item) => item.fieldData);
+
     // Create all items in a single bulk request (draft state).
     const createResult = await client.collections.items.createItems(collectionId!, {
-      items,
+      fieldData,
     } as any);
 
     // Normalize the response shape — the SDK may return either
@@ -78,6 +86,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     );
   }
 };
+
 
 
 

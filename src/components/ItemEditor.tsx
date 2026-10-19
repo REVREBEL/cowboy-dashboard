@@ -275,6 +275,127 @@ export default function ItemEditor({
     };
   }, [isRoomTypes, baseUrl]);
 
+  // Amenities editor: lets editors manage which Room Types this
+  // amenity/feature is attached to directly from the Amenity's own editor,
+  // instead of having to open each Room Type individually and find it in
+  // their (often long) "Features & Amenities" MultiReference list.
+  const isAmenitiesCollectionEditor = collectionSlug === 'amenities';
+  interface AmenityRoomTypeOption {
+    id: string;
+    name: string;
+    featureAmenities: string[];
+  }
+  const [amenityRoomTypes, setAmenityRoomTypes] = useState<AmenityRoomTypeOption[]>([]);
+  const [amenityRoomTypesLoading, setAmenityRoomTypesLoading] = useState(false);
+  // The "pending" selection state the user toggles in the UI.
+  const [connectedRoomTypeIds, setConnectedRoomTypeIds] = useState<Set<string>>(new Set());
+  // Snapshot of which Room Types were connected when the editor loaded, so
+  // on save we only PATCH the Room Types whose connection state actually
+  // changed.
+  const [initialConnectedRoomTypeIds, setInitialConnectedRoomTypeIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!isAmenitiesCollectionEditor) return;
+    let cancelled = false;
+    setAmenityRoomTypesLoading(true);
+    (async () => {
+      try {
+        const items: AmenityRoomTypeOption[] = [];
+        const limit = 100;
+        let offset = 0;
+        let total = Infinity;
+
+        while (offset < total) {
+          const res = await fetch(`${baseUrl}/api/cms/${ROOM_TYPES_COLLECTION_ID}?limit=${limit}&offset=${offset}`);
+          if (!res.ok) break;
+          const data = await res.json() as {
+            items?: Array<{ id: string; fieldData?: { name?: string; 'features-amenities'?: string[] } }>;
+            pagination?: { total?: number };
+          };
+          const pageItems = data.items || [];
+          pageItems.forEach(it => {
+            items.push({
+              id: it.id,
+              name: it.fieldData?.name || it.id,
+              featureAmenities: Array.isArray(it.fieldData?.['features-amenities'])
+                ? (it.fieldData!['features-amenities'] as string[])
+                : [],
+            });
+          });
+          total = data.pagination?.total ?? pageItems.length;
+          offset += limit;
+          if (pageItems.length === 0) break;
+        }
+
+        items.sort((a, b) => a.name.localeCompare(b.name));
+        if (cancelled) return;
+        setAmenityRoomTypes(items);
+
+        if (itemId && itemId !== 'new') {
+          const connected = new Set(items.filter(rt => rt.featureAmenities.includes(itemId)).map(rt => rt.id));
+          setConnectedRoomTypeIds(connected);
+          setInitialConnectedRoomTypeIds(connected);
+        }
+      } catch (err) {
+        console.error('Failed to load room types for amenity connections', err);
+      } finally {
+        if (!cancelled) setAmenityRoomTypesLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAmenitiesCollectionEditor, itemId, baseUrl]);
+
+  const toggleRoomTypeConnection = (roomTypeId: string) => {
+    setConnectedRoomTypeIds(prev => {
+      const next = new Set(prev);
+      if (next.has(roomTypeId)) {
+        next.delete(roomTypeId);
+      } else {
+        next.add(roomTypeId);
+      }
+      return next;
+    });
+  };
+
+  // Pushes the user's Connected Room Types toggles to the CMS: PATCHes
+  // only the Room Types whose connection state actually changed, adding or
+  // removing `amenityId` from each one's `features-amenities` array.
+  const syncConnectedRoomTypes = async (amenityId: string) => {
+    const changed = amenityRoomTypes.filter(rt => {
+      const wasConnected = initialConnectedRoomTypeIds.has(rt.id);
+      const isConnected = connectedRoomTypeIds.has(rt.id);
+      return wasConnected !== isConnected;
+    });
+
+    if (changed.length === 0) return;
+
+    const results = await Promise.allSettled(changed.map(async (rt) => {
+      const isConnected = connectedRoomTypeIds.has(rt.id);
+      const updatedIds = isConnected
+        ? Array.from(new Set([...rt.featureAmenities, amenityId]))
+        : rt.featureAmenities.filter(id => id !== amenityId);
+
+      const res = await fetch(`${baseUrl}/api/cms/${ROOM_TYPES_COLLECTION_ID}/${rt.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fieldData: { 'features-amenities': updatedIds } }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to update room type "${rt.name}"`);
+      }
+    }));
+
+    const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.error('Failed to sync some room type connections', failures);
+      throw new Error(`Failed to update ${failures.length} room type${failures.length === 1 ? '' : 's'}`);
+    }
+  };
+
   // Webflow's API returns `isRequired`, but older/local types used
   // `required`. Normalize here so the rest of the component (and the
   // required-field validation below) works no matter which shape comes in.
@@ -594,7 +715,25 @@ export default function ItemEditor({
 
       const result = await response.json() as { id?: string };
       console.log('Save successful:', result);
-      
+
+      // Sync "Connected Room Types" toggles for the Amenities collection:
+      // add/remove this amenity's id from each affected Room Type's
+      // features-amenities array. Works for both new amenities (using the
+      // freshly-created id) and existing ones.
+      if (isAmenitiesCollectionEditor) {
+        const savedAmenityId = isNewItem ? result.id : itemId;
+        if (savedAmenityId) {
+          try {
+            await syncConnectedRoomTypes(savedAmenityId);
+          } catch (syncErr) {
+            console.error('Failed to sync connected room types', syncErr);
+            toast.error('Amenity saved, but failed to update some room type connections', {
+              description: syncErr instanceof Error ? syncErr.message : 'An error occurred',
+            });
+          }
+        }
+      }
+
       if (isNewItem) {
         // Redirect to the newly created item's edit page
         const newItemId = result.id;
@@ -1808,6 +1947,49 @@ export default function ItemEditor({
           })}
         </div>
 
+        {isAmenitiesCollectionEditor && (
+          <section className="space-y-4 pt-8 mt-10 border-t border-border">
+            <div>
+              <h3 className="text-lg font-heading text-foreground">Connected Room Types</h3>
+              <p className="text-sm text-muted-foreground font-body mt-1">
+                Choose which Room Types feature this amenity. Toggling a Room Type here updates its
+                "Features & Amenities" list for you — no need to edit each Room Type individually.
+              </p>
+            </div>
+
+            {amenityRoomTypesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading room types...
+              </div>
+            ) : amenityRoomTypes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No room types found.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {amenityRoomTypes.map(rt => {
+                  const isConnected = connectedRoomTypeIds.has(rt.id);
+                  return (
+                    <label
+                      key={rt.id}
+                      className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        isConnected ? 'border-primary bg-primary/5' : 'border-border bg-background/50 hover:bg-muted/30'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isConnected}
+                        onChange={() => toggleRoomTypeConnection(rt.id)}
+                        className="w-4 h-4 accent-primary"
+                      />
+                      <span className="text-sm font-body text-foreground truncate">{rt.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
         <div className="flex flex-col sm:flex-row gap-3 pt-8 mt-10 border-t border-border sticky bottom-0 bg-background pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
           <Button 
             type="submit" 
@@ -1853,6 +2035,3 @@ export default function ItemEditor({
     </ErrorBoundary>
   );
 }
-
-
-
