@@ -627,15 +627,20 @@ export default function ItemEditor({
     });
 
     try {
-      const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}/bulk`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      });
+      // The single-item CMS endpoint expects fieldData at the request root.
+      // The bulk endpoint's { items } wrapper produced "Missing required key 'fieldData'".
+      // Save each marker through the same contract used by handleSubmit.
+      for (const item of items) {
+        const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fieldData: item.fieldData }),
+        });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
-        throw new Error(err.error || `Failed to save hotspots: ${res.statusText}`);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
+          throw new Error(err.error || `Failed to save hotspots: ${res.statusText}`);
+        }
       }
 
       toast.success(`${markers.length} hotspot${markers.length === 1 ? '' : 's'} tagged`, {
