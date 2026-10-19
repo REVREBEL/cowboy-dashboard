@@ -73,6 +73,10 @@ export default defineConfig({
     plugins: [tailwindcss(), patchViteErrorOverlay()],
     optimizeDeps: {
       include: [
+        'react',
+        'react-dom',
+        'react-dom/client',
+        'react/jsx-runtime',
         '@radix-ui/react-accordion',
         '@radix-ui/react-alert-dialog',
         '@radix-ui/react-aspect-ratio',
@@ -99,6 +103,7 @@ export default defineConfig({
         '@radix-ui/react-toggle',
         '@radix-ui/react-toggle-group',
         '@radix-ui/react-tooltip',
+        '@radix-ui/react-visually-hidden',
         'cmdk',
         'embla-carousel-react',
         'input-otp',
@@ -118,6 +123,7 @@ export default defineConfig({
         'tailwind-merge',
         'lucide-react',
       ],
+      force: true,
     },
     server: {
       watch: {
@@ -134,6 +140,12 @@ export default defineConfig({
       },
     },
     resolve: {
+      // Ensure only a single copy of React/ReactDOM is ever loaded. Duplicate
+      // copies (e.g. one bundled with a dependency, one from the app) cause
+      // "Cannot read properties of null (reading 'useContext')" errors because
+      // context created by one copy of React isn't recognized by hooks running
+      // in a different copy.
+      dedupe: ['react', 'react-dom'],
       // Use react-dom/server.edge instead of react-dom/server.browser for React 19.
       // Without this, MessageChannel from node:worker_threads needs to be polyfilled.
       alias: import.meta.env.PROD
@@ -144,6 +156,8 @@ export default defineConfig({
     },
   },
 });
+
+
 
 
 

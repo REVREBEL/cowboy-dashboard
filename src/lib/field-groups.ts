@@ -1,6 +1,7 @@
 
 
 
+
 // Field group mappings for organizing CMS fields into sections
 // Field slugs below are sourced directly from the live Webflow collection
 // schemas (see cms-collections-documentation.json) — keep these in sync if
@@ -155,11 +156,12 @@ export const FIELD_GROUPS: Record<string, FieldGroup[]> = {
       description: 'How guests can reach this location.',
       fields: [
         'primary-phone',
-        'front-desk-operations-emails',
-        'reservations-email',
-        'sales-email',
+        'website',
+        'google-maps-link',
         'general-email',
-        'website'
+        'reservations-email',
+        'front-desk-operations-emails',
+        'sales-email'
       ]
     },
     {
@@ -170,7 +172,6 @@ export const FIELD_GROUPS: Record<string, FieldGroup[]> = {
         'instagram-handle',
         'facebook',
         'trip-advisor',
-        'google-maps-link',
         'privacy-policy',
         'terms-conditions',
         'accessibility'
@@ -464,6 +465,7 @@ export function organizeFieldsByGroup(collectionSlug: string, fields: any[]): Ar
 
   return organized;
 }
+
 
 
 

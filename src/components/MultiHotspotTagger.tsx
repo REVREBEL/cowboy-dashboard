@@ -46,8 +46,8 @@ function makeId(): string {
 
 export default function MultiHotspotTagger({
   photoUrl,
-  photoFileId,
-  roomTypeId,
+  photoFileId: _photoFileId,
+  roomTypeId: _roomTypeId,
   amenityOptions,
   onSubmit,
   onCancel,
@@ -242,3 +242,4 @@ export default function MultiHotspotTagger({
     </div>
   );
 }
+

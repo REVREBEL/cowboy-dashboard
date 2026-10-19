@@ -1,8 +1,3 @@
-
-
-
-
-
 ---
 import MainLayout from '../../../layouts/main.astro';
 import { COLLECTIONS } from '../../../lib/collections-config';
@@ -14,140 +9,101 @@ import { Toaster } from '../../../components/ui/sonner';
 const { slug, itemId } = Astro.params;
 const pageClass = 'portal-item';
 
-console.log('=== PAGE LOAD ===');
-console.log('Slug:', slug);
-console.log('Item ID:', itemId);
-
 // Find collection
 const collection = COLLECTIONS.find(c => c.slug === slug);
-console.log('Collection found:', collection?.name);
-
-if (!collection) {
-  console.log('No collection found, redirecting');
-  return Astro.redirect('/portal');
-}
 
 // Get item data
 const token = Astro.locals?.runtime?.env?.WEBFLOW_CMS_API_TOKEN || import.meta.env.WEBFLOW_CMS_API_TOKEN;
 const apiHost = Astro.locals?.runtime?.env?.WEBFLOW_API_HOST || import.meta.env.WEBFLOW_API_HOST;
-console.log('Token exists:', !!token);
 
-// Validate required environment variables
-if (!token) {
-  throw new Error('Missing WEBFLOW_CMS_API_TOKEN');
-}
-
-const client = new WebflowClient({
-  accessToken: token,
-  ...(apiHost && { baseUrl: apiHost })
-});
-
-let item = null;
-let collectionDetails = null;
-let error = null;
+let item: Awaited<ReturnType<WebflowClient['collections']['items']['getItemLive']>> | null = null;
+let collectionDetails: Awaited<ReturnType<WebflowClient['collections']['get']>> | null = null;
+let error: string | null = null;
 let hasUnpublishedChanges = false;
 
-console.log('Fetching item...');
-try {
-  item = await client.collections.items.getItemLive(collection.id, itemId!);
-  console.log('✓ Item fetched:', item.fieldData.name);
-} catch (e: any) {
-  console.error('✗ Failed to fetch item:', e.message);
-  error = `Failed to load item: ${e.message}`;
-}
-
-// Compare against the staged (draft) version to detect unpublished edits made
-// directly in Webflow's Designer/CMS Manager that haven't been published yet.
-if (item) {
-  try {
-    const stagedItem = await client.collections.items.getItem(collection.id, itemId!);
-    const liveFieldData = JSON.stringify(item.fieldData ?? {});
-    const stagedFieldData = JSON.stringify(stagedItem.fieldData ?? {});
-    hasUnpublishedChanges = liveFieldData !== stagedFieldData;
-    if (hasUnpublishedChanges) {
-      console.log('⚠ Item has unpublished changes in Webflow (staged differs from live)');
-    }
-  } catch (e: any) {
-    console.error('Could not compare staged vs live item:', e.message);
-  }
-}
-
-if (item) {
-  console.log('Fetching collection details...');
-  try {
-    collectionDetails = await client.collections.get(collection.id);
-    console.log('✓ Collection details fetched, fields:', collectionDetails.fields?.length);
-  } catch (e: any) {
-    console.error('✗ Failed to fetch collection details:', e.message);
-    error = `Failed to load collection details: ${e.message}`;
-  }
-}
-
-const fields = collectionDetails?.fields || [];
-console.log('Final fields count:', fields.length);
-
-// Only log field data if item exists
-if (item) {
-  console.log('Field data being passed to component:', JSON.stringify(item.fieldData, null, 2));
-
-  // Log ALL field types
-  console.log('All field types:');
-  fields.forEach(field => {
-    console.log(`  ${field.slug}: ${field.type}`);
+if (!collection) {
+  error = `We couldn't find a collection matching "${slug}".`;
+} else if (!token) {
+  error = 'Missing Webflow CMS API token. Please check the app configuration.';
+} else {
+  const client = new WebflowClient({
+    accessToken: token,
+    ...(apiHost && { baseUrl: apiHost })
   });
 
-  // Log reference fields specifically
-  const refFields = fields.filter(f => f.type === 'Reference' || f.type === 'MultiReference');
-  console.log('Reference fields:', refFields.map(f => f.slug));
-  refFields.forEach(field => {
-    const slug = field.slug;
-    if (slug) {
-      console.log(`  ${slug} value:`, (item.fieldData as Record<string, unknown>)[slug]);
+  try {
+    item = await client.collections.items.getItemLive(collection.id, itemId!);
+  } catch (e: any) {
+    error = `Failed to load item: ${e.message}`;
+  }
+
+  // Compare against the staged (draft) version to detect unpublished edits made
+  // directly in Webflow's Designer/CMS Manager that haven't been published yet.
+  if (item) {
+    try {
+      const stagedItem = await client.collections.items.getItem(collection.id, itemId!);
+      const liveFieldData = JSON.stringify(item.fieldData ?? {});
+      const stagedFieldData = JSON.stringify(stagedItem.fieldData ?? {});
+      hasUnpublishedChanges = liveFieldData !== stagedFieldData;
+    } catch {
+      // Non-fatal — just skip the "unpublished changes" banner if this check fails.
     }
-  });
-}
+  }
 
-console.log('Error:', error);
-console.log('=== END PAGE LOAD ===');
+  if (item && !error) {
+    try {
+      collectionDetails = await client.collections.get(collection.id);
+    } catch (e: any) {
+      error = `Failed to load collection details: ${e.message}`;
+    }
+  }
 
-// If we failed to load the item or collection details, show error
-if (!item || !collectionDetails) {
-  return Astro.redirect(`${baseUrl}/portal/${slug}`);
+  if (!error && (!item || !collectionDetails)) {
+    error = 'This item could not be found. It may have been deleted or unpublished.';
+  }
 }
 ---
 
 <MainLayout pageClass={pageClass}>
   <div class="min-h-screen bg-background">
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-      {hasUnpublishedChanges && (
-        <div class="border border-amber-400 bg-amber-50 text-amber-900 px-4 py-3 mb-6 rounded">
-          <p class="text-sm font-body">
-            <strong>Heads up:</strong> This item has unsaved edits made directly in Webflow (Designer or CMS Manager) that haven't been published yet. The values shown below are from the last <strong>published</strong> version. Publish the item in Webflow to see the latest values here, or edit and save here to overwrite with your changes.
+      {error || !item || !collectionDetails ? (
+        <div class="max-w-lg mx-auto mt-12 border border-destructive/40 bg-destructive/5 rounded-lg px-6 py-8 text-center">
+          <h1 class="font-heading text-xl mb-2 text-foreground">Something went wrong</h1>
+          <p class="text-sm text-muted-foreground font-body mb-6">
+            {error ?? 'This item could not be loaded.'}
           </p>
-        </div>
-      )}
-      {error ? (
-        <div class="border border-destructive bg-destructive/10 px-4 py-3 mb-6">
-          <p class="text-sm text-destructive font-body">
-            {error}
-          </p>
+          <a
+            href={`${baseUrl}/portal`}
+            class="inline-block px-5 py-2.5 bg-primary text-primary-foreground font-button rounded hover:bg-primary/90 transition-colors"
+          >
+            Back to collections
+          </a>
         </div>
       ) : (
-        <ItemEditor 
-          client:only="react"
-          collectionId={collection.id}
-          collectionSlug={collection.slug}
-          collectionName={collection.name}
-          itemId={itemId!}
-          fields={collectionDetails.fields as any}
-          initialData={item.fieldData}
-          baseUrl={baseUrl}
-        />
+        <>
+          {hasUnpublishedChanges && (
+            <div class="border border-amber-400 bg-amber-50 text-amber-900 px-4 py-3 mb-6 rounded">
+              <p class="text-sm font-body">
+                <strong>Heads up:</strong> This item has unsaved edits made directly in Webflow (Designer or CMS Manager) that haven't been published yet. The values shown below are from the last <strong>published</strong> version. Publish the item in Webflow to see the latest values here, or edit and save here to overwrite with your changes.
+              </p>
+            </div>
+          )}
+          <ItemEditor
+            client:only="react"
+            collectionId={collection!.id}
+            collectionSlug={collection!.slug}
+            collectionName={collection!.name}
+            itemId={itemId!}
+            fields={collectionDetails.fields as any}
+            initialData={item.fieldData}
+            baseUrl={baseUrl}
+          />
+        </>
       )}
     </main>
   </div>
-  
+
   <Toaster client:only="react" />
 </MainLayout>
 
@@ -157,23 +113,3 @@ if (!item || !collectionDetails) {
     letter-spacing: -0.015em;
   }
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

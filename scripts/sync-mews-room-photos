@@ -106,6 +106,21 @@ function imageUrl(baseUrl, imageId) {
   return `${String(baseUrl).replace(/\/$/, "")}/${imageId}?width=${IMAGE_WIDTH}`;
 }
 
+/**
+ * Best-effort extraction of a stable "image signature" from a hosted image
+ * URL so we can detect whether a photo already present on the Webflow item
+ * (whether synced previously or uploaded manually) matches a Mews image ID.
+ * Mews image URLs are shaped like `${baseUrl}/${imageId}?width=${width}`, so
+ * the last path segment (ignoring the query string) is the Mews image ID.
+ */
+function extractImageSignature(url) {
+  if (typeof url !== "string" || !url.trim()) return null;
+
+  const withoutQuery = url.split("?")[0];
+  const segments = withoutQuery.split("/").filter(Boolean);
+  return segments.length ? segments[segments.length - 1] : null;
+}
+
 async function fetchJson(url, init = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -180,15 +195,15 @@ async function fetchMewsRoomTypes() {
       assignments,
       Array.isArray(category.ImageIds) ? category.ImageIds : [],
     );
+    const alt = localizedName(category.Name) || "Urban Cowboy Lodge Catskills";
 
     return {
       id: category.Id,
       name: localizedName(category.Name),
       imageIds,
-      images: imageIds.map((id) => ({
-        url: imageUrl(baseUrl, id),
-        alt: localizedName(category.Name) || "Urban Cowboy Lodge Catskills",
-      })),
+      // Keep the Mews image ID alongside each image so we can dedupe against
+      // photos that already exist on the Webflow item.
+      images: imageIds.map((id) => ({ id, url: imageUrl(baseUrl, id), alt })),
     };
   });
 }
@@ -235,10 +250,6 @@ function parseStoredImageIds(value) {
     .filter(Boolean);
 }
 
-function sameIds(a, b) {
-  return a.length === b.length && a.every((id, index) => id === b[index]);
-}
-
 function matchesOnly(room) {
   if (!ONLY) return true;
   const needle = normalizeName(ONLY);
@@ -249,10 +260,10 @@ function matchesOnly(room) {
   );
 }
 
-async function updateWebflowItem(item, mewsRoom) {
+async function updateWebflowItem(item, { imageIds, images }) {
   const fieldData = {
-    "mews-image-ids": JSON.stringify(mewsRoom.imageIds),
-    images: mewsRoom.images,
+    "mews-image-ids": JSON.stringify(imageIds),
+    images,
   };
 
   return fetchJson(
@@ -318,25 +329,104 @@ for (const mewsRoom of mewsRooms) {
   };
   if (!matchesOnly(room)) continue;
 
-  const currentIds = parseStoredImageIds(item.fieldData?.["mews-image-ids"]);
-  const hasChanged = !sameIds(currentIds, mewsRoom.imageIds);
+  // Images that already live on the Webflow item — these are left completely
+  // untouched other than having new, deduplicated Mews photos appended after
+  // them. Order and metadata (alt text, etc.) of existing entries is preserved.
+  const existingImages = Array.isArray(item.fieldData?.images) ? item.fieldData.images : [];
 
-  if (!mewsRoom.imageIds.length && !CLEAR_EMPTY) {
-    rows.push({
-      room: room.name,
-      mewsImages: 0,
-      currentImages: Array.isArray(item.fieldData?.images) ? item.fieldData.images.length : 0,
-      action: "SKIP EMPTY (use --clear-empty)",
-    });
-    skippedEmpty += 1;
+  // Mews image IDs that have been synced to this item in the past, tracked
+  // cumulatively across runs (not just the most recent sync).
+  const previouslySyncedIds = parseStoredImageIds(item.fieldData?.["mews-image-ids"]);
+
+  // Build a signature set of "already present" images so incoming Mews
+  // photos that match an existing one (by Mews image ID, derived from the
+  // hosted image URL) are skipped rather than duplicated.
+  const existingSignatures = new Set([
+    ...previouslySyncedIds,
+    ...existingImages
+      .map((image) => extractImageSignature(image?.url))
+      .filter((signature) => Boolean(signature)),
+  ]);
+
+  const currentImageCount = existingImages.length;
+
+  // Mews has no photos for this room type.
+  if (!mewsRoom.imageIds.length) {
+    if (!CLEAR_EMPTY) {
+      rows.push({
+        room: room.name,
+        mewsImages: 0,
+        currentImages: currentImageCount,
+        newImages: 0,
+        action: "SKIP EMPTY (use --clear-empty)",
+      });
+      skippedEmpty += 1;
+      continue;
+    }
+
+    // --clear-empty is an explicit, destructive override: the caller is
+    // asking us to reset this room's photos because Mews no longer has any.
+    if (!currentImageCount && !previouslySyncedIds.length) {
+      rows.push({
+        room: room.name,
+        mewsImages: 0,
+        currentImages: currentImageCount,
+        newImages: 0,
+        action: "UNCHANGED",
+      });
+      unchanged += 1;
+      continue;
+    }
+
+    changed += 1;
+
+    if (!WRITE) {
+      rows.push({
+        room: room.name,
+        mewsImages: 0,
+        currentImages: currentImageCount,
+        newImages: 0,
+        action: "WOULD CLEAR",
+      });
+      continue;
+    }
+
+    try {
+      await updateWebflowItem(item, { imageIds: [], images: [] });
+      rows.push({
+        room: room.name,
+        mewsImages: 0,
+        currentImages: currentImageCount,
+        newImages: 0,
+        action: "CLEARED",
+      });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    } catch (error) {
+      failed += 1;
+      rows.push({
+        room: room.name,
+        mewsImages: 0,
+        currentImages: currentImageCount,
+        newImages: 0,
+        action: "FAILED",
+      });
+      console.error(`\nFAILED ${room.name}: ${error instanceof Error ? error.message : error}`);
+    }
+
     continue;
   }
 
-  if (!hasChanged) {
+  // Only photos Mews has that aren't already represented on the Webflow item
+  // get appended — existing photos (synced or manually added) are never
+  // removed or reordered.
+  const newMewsImages = mewsRoom.images.filter((image) => !existingSignatures.has(image.id));
+
+  if (!newMewsImages.length) {
     rows.push({
       room: room.name,
       mewsImages: mewsRoom.imageIds.length,
-      currentImages: Array.isArray(item.fieldData?.images) ? item.fieldData.images.length : 0,
+      currentImages: currentImageCount,
+      newImages: 0,
       action: "UNCHANGED",
     });
     unchanged += 1;
@@ -345,23 +435,31 @@ for (const mewsRoom of mewsRooms) {
 
   changed += 1;
 
+  const combinedImages = [
+    ...existingImages,
+    ...newMewsImages.map(({ url, alt }) => ({ url, alt })),
+  ];
+  const combinedMewsIds = Array.from(new Set([...previouslySyncedIds, ...mewsRoom.imageIds]));
+
   if (!WRITE) {
     rows.push({
       room: room.name,
       mewsImages: mewsRoom.imageIds.length,
-      currentImages: Array.isArray(item.fieldData?.images) ? item.fieldData.images.length : 0,
-      action: "WOULD SYNC",
+      currentImages: currentImageCount,
+      newImages: newMewsImages.length,
+      action: "WOULD APPEND",
     });
     continue;
   }
 
   try {
-    await updateWebflowItem(item, mewsRoom);
+    await updateWebflowItem(item, { imageIds: combinedMewsIds, images: combinedImages });
     rows.push({
       room: room.name,
       mewsImages: mewsRoom.imageIds.length,
-      currentImages: Array.isArray(item.fieldData?.images) ? item.fieldData.images.length : 0,
-      action: "SYNCED",
+      currentImages: currentImageCount,
+      newImages: newMewsImages.length,
+      action: "APPENDED",
     });
 
     // Keep the API cadence deliberately gentle and make per-room failures easier
@@ -372,7 +470,8 @@ for (const mewsRoom of mewsRooms) {
     rows.push({
       room: room.name,
       mewsImages: mewsRoom.imageIds.length,
-      currentImages: Array.isArray(item.fieldData?.images) ? item.fieldData.images.length : 0,
+      currentImages: currentImageCount,
+      newImages: newMewsImages.length,
       action: "FAILED",
     });
     console.error(`\nFAILED ${room.name}: ${error instanceof Error ? error.message : error}`);
@@ -380,7 +479,7 @@ for (const mewsRoom of mewsRooms) {
 }
 
 console.log("");
-console.log(WRITE ? "ROOM PHOTO SYNC" : "ROOM PHOTO SYNC — DRY RUN");
+console.log(WRITE ? "ROOM PHOTO SYNC (APPEND MODE)" : "ROOM PHOTO SYNC — DRY RUN (APPEND MODE)");
 console.log(`Mews configuration: ${MEWS_CONFIG_ID}`);
 console.log(`Webflow collection: ${WEBFLOW_COLLECTION_ID}`);
 console.log(`Image width: ${IMAGE_WIDTH}px`);
@@ -406,7 +505,7 @@ if (!WRITE && changed > 0) {
 if (WRITE) {
   console.log("");
   console.log(
-    "Webflow items were updated in staged CMS content only. This script does not publish the site.",
+    "Webflow items were updated in staged CMS content only. This script does not publish the site. New Mews photos were appended to each room's existing photo collection; nothing was overwritten or removed (unless --clear-empty applied to a room with zero Mews photos).",
   );
 }
 

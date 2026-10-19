@@ -8,6 +8,34 @@
 
 ## Current State (Latest Session) — Updated
 
+### ✅ New: Room Photo Sync now appends instead of replacing
+**Ask**: Running the Mews room-photo sync was overwriting each Room Type's existing `images` field with whatever Mews returned, silently discarding manually-added photos and losing custom alt text/ordering on every re-run.
+
+**Shipped**:
+- `scripts/sync-mews-room-photos` — rewrote the per-item update path so it **appends** rather than replaces:
+  - Reads the item's current `fieldData.images` first and keeps every existing entry, in its existing order, with its existing alt text untouched.
+  - Builds a signature set of "already present" images (by Mews image ID embedded in the image URL, falling back to raw URL match) so re-running the sync never creates duplicate entries for photos that were already pulled in on a previous run.
+  - Only the Mews photos that aren't already represented by that signature set are appended to the **end** of the existing `images` array.
+  - `--clear-empty` remains a narrow, explicit override: it only resets a room's photo collection when that room currently has **zero** photos in Mews — it never clears or truncates an item that already has images, even if `--clear-empty` is passed.
+- `src/pages/api/cms/sync-room-photos.ts` — added inline comments clarifying the append/dedupe contract for the `--write`/`--clear-empty`/`--width`/`--only` flags passed through to the script.
+- `src/components/SyncRoomPhotos.tsx` — updated the panel copy to describe the new append semantics ("Append new room type images… adds any Mews photos that aren't already on the item to the end of its existing photo collection… existing photos are never removed, reordered, or overwritten") and clarified the "Clear Empty" toggle's helper text to match the narrow zero-photos-only override behavior.
+
+**Net effect**: Syncing is now idempotent and non-destructive — it's safe to re-run at any time without risking data loss on manually curated room photo galleries.
+
+### ✅ Fixed: "Cannot read properties of null (reading 'useState')" crash in Sync Room Photos panel
+**Symptom**: Clicking into the Sync Room Photos panel would occasionally unmount the entire component tree with a React hooks error pointing at `<Switch>`.
+
+**Root cause**: A duplicate copy of React ending up in the client bundle caused Radix UI's `<Switch>` (which relies on internal context/hooks) to call `useState` against the wrong React instance.
+
+**Fix**:
+1. `astro.config.mjs` — added `vite.resolve.dedupe: ['react', 'react-dom']` so Vite only ever bundles a single copy of React/ReactDOM.
+2. `src/components/SyncRoomPhotos.tsx` — replaced the Radix `<Switch>` for both "Write Mode" and "Clear Empty" with a local `SimpleToggle` component: a visually identical pill-shaped toggle built from a plain, accessible (`role="switch"`) checkbox input, sidestepping Radix's hook/context requirements entirely.
+3. Sync button clicks now call `e.preventDefault()`/`e.stopPropagation()` and the fetch is wrapped in `try/catch/finally` so `setSyncing(false)` always runs and the card never dismisses mid-request.
+
+Verified with `npx astro check` — 0 errors, 0 warnings.
+
+---
+
 ### ✅ New: Multi-Marker Photo Hotspot Tagging — 100% COMPLETE
 **Ask**: Let editors tag a single Room Type photo with multiple amenity hotspots in one session (place several pins, assign an amenity to each, save/publish all at once) instead of repeating the single-marker flow one hotspot at a time.
 
@@ -102,7 +130,7 @@ Replaced the full-width "No alt text" banner on `MultiImageField.tsx` thumbnails
    - **Image** fields use `src/components/ImageUpload.tsx` (single image, preview, replace, remove).
    - **MultiImage** fields (and array-based Image fields) now use `src/components/MultiImageField.tsx` — thumbnail grid (with a small warning badge icon for missing alt text), click-to-edit modal (alt text, remove), and an add-photos dropzone. This was the feature completed in this session.
    - Both image components share upload logic via `src/lib/image-upload-client.ts`, which posts to `POST /api/cms/upload-image.ts`.
-6. **Room photo sync utility** — `src/components/SyncRoomPhotos.tsx` + `POST /api/cms/sync-room-photos.ts` for bulk-syncing room images (Mews integration, see `scripts/sync-mews-room-photos`).
+6. **Room photo sync utility** — `src/components/SyncRoomPhotos.tsx` + `POST /api/cms/sync-room-photos.ts` for bulk-syncing room images (Mews integration, see `scripts/sync-mews-room-photos`). Appends newly-found, deduplicated Mews photos to the end of each room type's existing `images` field rather than replacing it — see "Room Photo Sync now appends instead of replacing" above for the full behavior contract.
 7. **API Endpoints**:
    - `GET /api/cms/[collectionId]` — List live items in a collection
    - `GET/PUT /api/cms/[collectionId]/[itemId]` — Get/update a single live item
@@ -214,6 +242,8 @@ WEBFLOW_SITE_ID=6abc810fd801e90511049adb
 - `IMAGE_UPLOAD_GUIDE.md` — Image/MultiImage upload implementation guide
 - `cms-collections-documentation.json` — Raw API data
 - `PORTAL_STATUS.md` — This file (current status)
+
+
 
 
 

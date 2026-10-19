@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 
 export interface AmenityTileOption {
@@ -89,8 +89,8 @@ export default function AmenitySortingGrid({
                 </div>
               ) : (
                 <div className="w-[75px] h-[75px] flex flex-col items-center justify-center p-1 bg-background border rounded-md shadow-sm text-center">
-                  <Sparkles className="w-4.5 h-4.5 text-muted-foreground" />
-                  <span className="text-[10px] line-clamp-2 mt-1 font-body text-foreground">
+                  <Sparkles className="w-4.5 h-4.5 text-muted-foreground" style={{ fontSize: '18px' }} />
+                  <span className="text-[10px] font-medium leading-tight line-clamp-2 mt-1 font-body text-foreground">
                     {name}
                   </span>
                 </div>
@@ -122,5 +122,7 @@ export default function AmenitySortingGrid({
     </div>
   );
 }
+
+
 
 

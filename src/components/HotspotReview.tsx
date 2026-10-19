@@ -1,10 +1,4 @@
-
-
-
-
-
-
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ImageOff, Loader2, Pencil, Tag } from 'lucide-react';
 import RoomPhotoPicker from './RoomPhotoPicker';
 import { fetchAllPhotoHotspots, hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots';
@@ -211,6 +205,7 @@ export default function HotspotReview({
     </div>
   );
 }
+
 
 
 

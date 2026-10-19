@@ -14,7 +14,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
     };
     const { write = false, clearEmpty = false, width = 1600, only = null } = body;
 
-    // Build the command
+    // Build the command.
+    //
+    // NOTE: scripts/sync-mews-room-photos appends newly-found Mews photos to
+    // the END of each room type's existing `images` field rather than
+    // replacing it. Existing photos (synced previously or added manually in
+    // Webflow) are left completely untouched unless `--clear-empty` is
+    // passed AND the Mews room currently has zero photos, in which case that
+    // room's photo collection is explicitly reset as a deliberate override.
     let command = 'node scripts/sync-mews-room-photos';
     
     if (write) command += ' --write';
@@ -63,6 +70,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 };
+
 
 
 

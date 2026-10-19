@@ -1,3 +1,4 @@
+
 ---
 import MainLayout from '../layouts/main.astro';
 import { baseUrl } from '../lib/base-url';
@@ -14,11 +15,12 @@ import { baseUrl } from '../lib/base-url';
     </div>
   </div>
   
-  <script define:vars={{ baseUrl }}>
+  <script is:inline define:vars={{ baseUrl }}>
     // Client-side redirect after a brief moment
     setTimeout(() => {
       window.location.href = `${baseUrl}/portal`;
     }, 100);
   </script>
 </MainLayout>
+
 

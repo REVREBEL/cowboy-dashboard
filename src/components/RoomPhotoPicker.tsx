@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronsUpDown, ImageOff, Loader2, Search } from 'lucide-react';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
@@ -233,6 +233,7 @@ export default function RoomPhotoPicker({
     </div>
   );
 }
+
 
 
 

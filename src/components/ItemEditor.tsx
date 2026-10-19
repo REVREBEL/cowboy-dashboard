@@ -5,8 +5,8 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { toast } from 'sonner';
-import { Info, Loader2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
+import { Info, Loader2, ChevronDown, ChevronUp, ExternalLink, Upload, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { organizeFieldsByGroup } from '../lib/field-groups';
 import { getFieldRows, getLayoutClasses } from '../lib/field-layouts';
 import { COLLECTIONS } from '../lib/collections-config';
@@ -16,7 +16,8 @@ import HotspotPicker from './HotspotPicker';
 import MultiHotspotTagger, { type HotspotMarker, type AmenityOption } from './MultiHotspotTagger';
 import RoomPhotoPicker from './RoomPhotoPicker';
 import AmenitySortingGrid from './AmenitySortingGrid';
-import type { ImageData } from '../lib/image-upload-client';
+import ErrorBoundary from './ErrorBoundary';
+import { uploadImageFile, type ImageData } from '../lib/image-upload-client';
 import {
   ROOM_TYPES_COLLECTION_ID,
   extractAmenityIds,
@@ -63,6 +64,10 @@ interface ReferenceOption {
   // Raw option id of the referenced item's `type` field (only populated for
   // collections that have one, e.g. the shared Amenities collection).
   type?: string | null;
+  // Raw value of the referenced item's `category` field (only populated for
+  // collections that have one, e.g. the shared Amenities collection) — used
+  // to group amenity items first by Category, then by Type.
+  category?: string | null;
   // Thumbnail image (only populated for collections that have one, e.g. the
   // shared Amenities collection) — used by the Amenity display-order
   // sorting grid on Room Types.
@@ -100,6 +105,16 @@ const COLOR_MAP: Record<string, string> = {
   'oxidized-teal': '#236b7d',
 };
 
+// Standard 2-letter US State codes (+ DC) used to render the `state` field
+// as a dropdown instead of a free-text input.
+const US_STATES: string[] = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC',
+];
+
 // The "Features & Amenities" and "Policies" fields on Room Types both
 // reference the same shared Amenities collection, which has a `type`
 // option field (Feature / Amenity / Policy / Accessibility / ...). We only
@@ -110,8 +125,18 @@ const AMENITY_POLICY_TYPE_ID = '7c93dc1078791efcf798aff5800d16a3';
 
 function filterReferenceOptionsForField(field: Field, options: ReferenceOption[]): ReferenceOption[] {
   if (field.validations?.collectionId !== AMENITIES_COLLECTION_ID) return options;
-  if (field.slug === 'policies') {
-    return options.filter(o => o.type === AMENITY_POLICY_TYPE_ID);
+  const normalizedSlug = field.slug.toLowerCase();
+  // Covers the Room Type collection's "policies" field as well as the
+  // Building collection's "Policy" field (and any other slug variant that
+  // contains "polic"), so both forms filter the shared Amenities
+  // collection down to Policy-typed items using the same logic.
+  const isPolicyField = normalizedSlug.includes('polic');
+  if (isPolicyField) {
+    return options.filter(o => {
+      const typeStr = o.type != null ? String(o.type).trim().toLowerCase() : '';
+      const categoryStr = o.category != null ? String(o.category).trim().toLowerCase() : '';
+      return o.type === AMENITY_POLICY_TYPE_ID || typeStr === 'policy' || categoryStr === 'policy';
+    });
   }
   if (field.slug === 'features-amenities') {
     return options.filter(o => o.type !== AMENITY_POLICY_TYPE_ID);
@@ -191,6 +216,44 @@ export default function ItemEditor({
   // one-hotspot-per-page-navigation flow.
   const [taggerImage, setTaggerImage] = useState<ImageData | null>(null);
   const [isAmenitiesCollapsed, setIsAmenitiesCollapsed] = useState(true);
+
+  // Feature Section: each of the 3 feature icon blocks manages its own
+  // custom upload/replace/remove controls (instead of delegating to the
+  // full <ImageUpload> component), since the icon preview container is a
+  // fixed-size aspect-square box and <ImageUpload>'s own internal layout
+  // (dropzone + max-h-96 preview + alt input + replace button all bundled
+  // together) doesn't fit cleanly inside it.
+  const [featureIconUploading, setFeatureIconUploading] = useState<Record<string, boolean>>({});
+  const [featureIconError, setFeatureIconError] = useState<Record<string, string | null>>({});
+  const featureIconFileInputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
+
+  const uploadFeatureIcon = async (slug: string, file: File) => {
+    setFeatureIconUploading(prev => ({ ...prev, [slug]: true }));
+    setFeatureIconError(prev => ({ ...prev, [slug]: null }));
+    try {
+      const img = await uploadImageFile(file, baseUrl);
+      setFormData(prev => ({
+        ...prev,
+        [slug]: { ...img, alt: prev[slug]?.alt || img.alt || '' },
+      }));
+    } catch (err) {
+      console.error('Feature icon upload error:', err);
+      setFeatureIconError(prev => ({
+        ...prev,
+        [slug]: err instanceof Error ? err.message : 'Upload failed',
+      }));
+    } finally {
+      setFeatureIconUploading(prev => ({ ...prev, [slug]: false }));
+    }
+  };
+
+  const removeFeatureIcon = (slug: string) => {
+    if (typeof window !== 'undefined' && !window.confirm('Are you sure you want to remove this photo?')) {
+      return;
+    }
+    handleChange(slug, null);
+  };
+
   const PHOTO_HOTSPOTS_COLLECTION = React.useMemo(
     () => COLLECTIONS.find(c => c.slug === 'photo-hotspots'),
     []
@@ -346,7 +409,7 @@ export default function ItemEditor({
               const res = await fetch(`${baseUrl}/api/cms/${refCollectionId}?limit=${limit}&offset=${offset}`);
               if (!res.ok) break;
               const data = await res.json() as {
-                items?: Array<{ id: string; fieldData?: { name?: string; type?: string | null; image?: { url: string } | null } }>;
+                items?: Array<{ id: string; fieldData?: { name?: string; type?: string | null; category?: string | null; image?: { url: string } | null } }>;
                 pagination?: { total?: number };
               };
               const pageItems = data.items || [];
@@ -355,6 +418,7 @@ export default function ItemEditor({
                   id: it.id,
                   name: it.fieldData?.name || it.id,
                   type: it.fieldData?.type ?? null,
+                  category: it.fieldData?.category ?? null,
                   image: it.fieldData?.image ?? null,
                 });
               });
@@ -579,6 +643,37 @@ export default function ItemEditor({
 
   const renderField = (field: any) => {
     const value = formData[field.slug];
+
+    // The `state` field is rendered as a US State dropdown regardless of
+    // its underlying Webflow field type (typically PlainText), since it
+    // should always hold a standard 2-letter state code.
+    if (field.slug === 'state') {
+      return (
+        <div key={field.slug} className="space-y-1.5">
+          <FieldLabel
+            htmlFor={field.slug}
+            displayName={field.displayName}
+            isRequired={field.required}
+            helpText={field.helpText}
+          />
+          <Select
+            value={value || ''}
+            onValueChange={(val) => handleChange(field.slug, val || '')}
+          >
+            <SelectTrigger id={field.slug} className="font-body w-full">
+              <SelectValue placeholder="Select State..." />
+            </SelectTrigger>
+            <SelectContent>
+              {US_STATES.map((code) => (
+                <SelectItem key={code} value={code}>
+                  {code}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
 
     switch (field.type) {
       case 'PlainText':
@@ -978,6 +1073,53 @@ export default function ItemEditor({
           handleChange(field.slug, updated);
         };
 
+        // Items from the shared Amenities collection carry a `category` and
+        // a `type` field — group them Category -> Type -> Items so long
+        // lists (Features & Amenities, Policies) are easier to scan, with
+        // clean fallbacks for items missing either value.
+        const isAmenitiesCollectionField = refCollectionId === AMENITIES_COLLECTION_ID;
+
+        type GroupedItem = { id: string; name: string };
+        const groupedByCategory = isAmenitiesCollectionField
+          ? (() => {
+              const categories = new Map<string, Map<string, GroupedItem[]>>();
+              refOptions.forEach((opt) => {
+                const categoryKey = (opt as ReferenceOption).category?.toString().trim() || 'General';
+                const typeKey = (opt as ReferenceOption).type?.toString().trim() || 'Standard';
+                if (!categories.has(categoryKey)) categories.set(categoryKey, new Map());
+                const typesMap = categories.get(categoryKey)!;
+                if (!typesMap.has(typeKey)) typesMap.set(typeKey, []);
+                typesMap.get(typeKey)!.push({ id: opt.id, name: opt.name });
+              });
+              return Array.from(categories.entries())
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([category, typesMap]) => ({
+                  category,
+                  types: Array.from(typesMap.entries())
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([type, items]) => ({ type, items })),
+                }));
+            })()
+          : [];
+
+        const renderToggleButton = (option: GroupedItem) => {
+          const isSelected = selectedIds.includes(option.id);
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => toggleId(option.id)}
+              className={`px-3 py-1.5 border font-body text-sm transition-colors text-left ${
+                isSelected
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted'
+              }`}
+            >
+              {option.name}
+            </button>
+          );
+        };
+
         return (
           <div key={field.slug} className="space-y-1.5">
             <FieldLabel 
@@ -986,33 +1128,35 @@ export default function ItemEditor({
               isRequired={field.required}
               helpText={field.helpText}
             />
-            <div className="flex flex-wrap gap-2 border border-border p-3 bg-background min-h-[3rem]">
-              {isLoadingOptions && refOptions.length === 0 && (
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading options...
-                </span>
-              )}
-              {!isLoadingOptions && refOptions.length === 0 && (
-                <span className="text-sm text-muted-foreground font-body">No options available</span>
-              )}
-              {refOptions.map(option => {
-                const isSelected = selectedIds.includes(option.id);
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => toggleId(option.id)}
-                    className={`px-3 py-1.5 border font-body text-sm transition-colors ${
-                      isSelected
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-background text-foreground border-border hover:bg-muted'
-                    }`}
-                  >
-                    {option.name}
-                  </button>
-                );
-              })}
-            </div>
+            {isLoadingOptions && refOptions.length === 0 && (
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground font-body">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading options...
+              </span>
+            )}
+            {!isLoadingOptions && refOptions.length === 0 && (
+              <span className="text-sm text-muted-foreground font-body">No options available</span>
+            )}
+            {isAmenitiesCollectionField ? (
+              <div>
+                {groupedByCategory.map(({ category, types }) => (
+                  <div key={category} className="p-5 border rounded-xl bg-background/50 mb-6 space-y-4">
+                    <h3 className="text-base font-bold tracking-wide border-b pb-2 mb-4">{category}</h3>
+                    {types.map(({ type, items }) => (
+                      <div key={type}>
+                        <h4 className="text-sm font-semibold text-muted-foreground mt-3 mb-2">{type}</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                          {items.map(item => renderToggleButton(item))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2 border border-border p-3 bg-background min-h-[3rem]">
+                {refOptions.map(option => renderToggleButton(option))}
+              </div>
+            )}
           </div>
         );
       }
@@ -1059,6 +1203,16 @@ export default function ItemEditor({
   // Create a map of field slug to field object for quick lookup
   const fieldMap = new Map(fields.map(f => [f.slug, f]));
 
+  // Find a field by its display name, independent of which group Webflow
+  // (or our group config) would normally place it in. This lets fields
+  // like "Google Maps Link" be relocated into the Contact section's 2-column
+  // layout even if they technically belong to a different group (e.g.
+  // Social & Links).
+  const findFieldByName = (name: string) =>
+    fields.find(f => f.displayName.trim().toLowerCase() === name.trim().toLowerCase());
+
+  const googleMapsLinkField = findFieldByName('Google Maps Link');
+
   // Does this collection have a top-level `active` field? If so, surface it
   // as a status toggle in the banner at the top of the editor instead of
   // buried inside a group.
@@ -1070,18 +1224,16 @@ export default function ItemEditor({
       <Label htmlFor="active" className="font-body text-sm font-medium text-foreground">
         Active
       </Label>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Info className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
-          </TooltipTrigger>
-          <TooltipContent>
-            {formData.active === true
-              ? 'This item is active and visible.'
-              : 'Inactive items are hidden from public views.'}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Info className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer" />
+        </TooltipTrigger>
+        <TooltipContent>
+          {formData.active === true
+            ? 'This item is active and visible.'
+            : 'Inactive items are hidden from public views.'}
+        </TooltipContent>
+      </Tooltip>
       <Switch
         id="active"
         checked={formData.active === true}
@@ -1091,6 +1243,7 @@ export default function ItemEditor({
   ) : null;
 
   return (
+    <ErrorBoundary label="Item editor">
     <>
     <form onSubmit={handleSubmit} className="w-full">
         {isNewItemPage ? (
@@ -1131,7 +1284,15 @@ export default function ItemEditor({
           {organizedFields.map((group) => {
             // Get the field slugs in this group
             const groupFieldSlugs = new Set(group.fields.map(f => f.slug));
-            
+
+            // "Google Maps Link" is relocated into the Contact section's
+            // layout (see isContactSection below), so suppress it from
+            // whichever group it would normally render in (e.g. Social &
+            // Links) to avoid rendering it twice.
+            if (googleMapsLinkField && group.name !== 'Contact') {
+              groupFieldSlugs.delete(googleMapsLinkField.slug);
+            }
+
             // Filter rows to only include fields in this group
             const groupRows = fieldRows.filter(row => 
               row.fields.some(f => groupFieldSlugs.has(f.slug))
@@ -1192,6 +1353,87 @@ export default function ItemEditor({
             // section: collapsed by default with an expand/collapse control
             // in the header so the editor form feels less overwhelming.
             const isAmenitiesSection = collectionSlug === 'room-types' && group.name === 'Amenities & Policies';
+
+            // Special handling for the "Contact" section: organize fields
+            // into a clean 2-column layout — phone/website/maps link on the
+            // left, emails on the right. "Google Maps Link" is pulled in by
+            // display name from wherever it normally lives (e.g. Social &
+            // Links) so it renders here instead.
+            const isContactSection = group.name === 'Contact';
+            const contactColumn1Fields = isContactSection
+              ? ['Primary Phone', 'Website', 'Google Maps Link']
+                  .map(name => findFieldByName(name))
+                  .filter((f): f is NonNullable<typeof f> => !!f)
+              : [];
+            const contactColumn2Fields = isContactSection
+              ? ['General Email', 'Reservations Email', 'Front Desk | Operations Emails', 'Sales Email']
+                  .map(name => findFieldByName(name))
+                  .filter((f): f is NonNullable<typeof f> => !!f)
+              : [];
+
+            // Special handling for the "Social & Links" section: organize
+            // fields into a clean 2-column layout with sub-headings —
+            // social profile links on the left ("Socials"), other misc.
+            // links on the right ("Other Links"). "Google Maps Link" is
+            // excluded here (relocated to the Contact section above via the
+            // groupFieldSlugs exclusion earlier in this loop).
+            const isSocialLinksSection = group.name === 'Social & Links';
+            const socialsColumnFields = isSocialLinksSection
+              ? ['Instagram', 'Instagram Handle', 'Facebook', 'YouTube', 'TripAdvisor']
+                  .map(name => findFieldByName(name))
+                  .filter((f): f is NonNullable<typeof f> => !!f)
+              : [];
+            const otherLinksColumnFields = isSocialLinksSection
+              ? ['Privacy Policy', 'Terms & Conditions', 'Accessibility']
+                  .map(name => findFieldByName(name))
+                  .filter((f): f is NonNullable<typeof f> => !!f)
+              : [];
+
+            // Special handling for the "Address" section: City, State, and
+            // Postal Code render together in a 3-column row; any other
+            // address fields (e.g. Street Address) render normally, stacked
+            // above that row.
+            const isAddressSection = group.name === 'Address';
+            const findAddressField = (names: string[]) => {
+              for (const n of names) {
+                const bySlug = fieldMap.get(n.toLowerCase().replace(/\s+/g, '-'));
+                if (bySlug) return bySlug;
+                const byName = findFieldByName(n);
+                if (byName) return byName;
+              }
+              return undefined;
+            };
+            const addressCityField = isAddressSection ? findAddressField(['City']) : undefined;
+            const addressStateField = isAddressSection ? fieldMap.get('state') : undefined;
+            const addressPostalField = isAddressSection
+              ? findAddressField(['Postal Code', 'Zip Code', 'Zip'])
+              : undefined;
+            const addressRowFields = [addressCityField, addressStateField, addressPostalField]
+              .filter((f): f is NonNullable<typeof f> => !!f);
+            const addressRowSlugs = new Set(addressRowFields.map(f => f.slug));
+            const addressOtherFields = isAddressSection
+              ? group.fields
+                  .map(f => fieldMap.get(f.slug))
+                  .filter((f): f is NonNullable<typeof f> => !!f && !addressRowSlugs.has(f.slug))
+              : [];
+
+            // Special handling for the "Feature Section" group: group
+            // Features 1, 2, and 3 into 3 distinct 2-column block cards —
+            // icon preview + alt text on the left, headline + paragraph on
+            // the right. The "Enable Feature Section" toggle stays as its
+            // own header control above all 3 cards.
+            const isFeatureSection = group.name === 'Feature Section';
+            const featureEnableField: Field | undefined = isFeatureSection
+              ? fieldMap.get('enable-feature-section') || findFieldByName('Enable Feature Section')
+              : undefined;
+            const featureBlocks = isFeatureSection
+              ? [1, 2, 3].map((n) => ({
+                  icon: fieldMap.get(`feature-icon-${n}`),
+                  iconAltSlug: `feature-icon-${n}-alt`,
+                  headline: fieldMap.get(`feature-headline-${n}`),
+                  paragraph: fieldMap.get(`feature-paragraph-${n}`),
+                }))
+              : [];
 
             return (
               <section key={group.name} className="space-y-6">
@@ -1266,6 +1508,162 @@ export default function ItemEditor({
                       return memberOnlyField ? renderField(memberOnlyField) : null;
                     })()}
                   </div>
+                ) : isContactSection ? (
+                  // 2-column layout: phone/website/maps link on the left,
+                  // emails on the right.
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      {contactColumn1Fields.map(field => renderField(field))}
+                    </div>
+                    <div className="space-y-4">
+                      {contactColumn2Fields.map(field => renderField(field))}
+                    </div>
+                  </div>
+                ) : isAddressSection ? (
+                  // Any other address fields (e.g. Street Address) stack
+                  // full-width above a 3-column City / State / Postal Code row.
+                  <div className="space-y-6">
+                    {addressOtherFields.length > 0 && (
+                      <div className="space-y-4">
+                        {addressOtherFields.map(field => renderField(field))}
+                      </div>
+                    )}
+                    {addressRowFields.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {addressRowFields.map(field => renderField(field))}
+                      </div>
+                    )}
+                  </div>
+                ) : isSocialLinksSection ? (
+                  // 2-column layout with sub-headings: social profile links
+                  // on the left, other misc. links on the right.
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold mb-3">Socials</h4>
+                      {socialsColumnFields.map(field => renderField(field))}
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold mb-3">Other Links</h4>
+                      {otherLinksColumnFields.map(field => renderField(field))}
+                    </div>
+                  </div>
+                ) : isFeatureSection ? (
+                  // Main "Enable Feature Section" toggle stays at top, above
+                  // all 3 feature cards. Each feature block renders as its
+                  // own 2-column card: icon preview + upload/replace/remove
+                  // controls + alt text on the left, headline + paragraph on
+                  // the right.
+                  <div className="space-y-6">
+                    {featureEnableField && (
+                      <div>{renderField(featureEnableField)}</div>
+                    )}
+                    {featureBlocks.map((block, idx) => {
+                      const iconSlug = block.icon?.slug;
+                      const imageValue: ImageData | null | undefined = iconSlug ? formData[iconSlug] : undefined;
+                      const hasImage = !!imageValue?.url;
+                      const isUploading = iconSlug ? !!featureIconUploading[iconSlug] : false;
+                      const uploadError = iconSlug ? featureIconError[iconSlug] : null;
+
+                      return (
+                        <div
+                          key={`feature-block-${idx + 1}`}
+                          className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start p-5 border rounded-xl bg-background/50 mb-6"
+                        >
+                          <div className="space-y-4">
+                            <div className="max-w-[350px] w-full aspect-square relative rounded-lg overflow-hidden border bg-muted/20 flex items-center justify-center p-2">
+                              {hasImage ? (
+                                <img
+                                  src={imageValue!.url}
+                                  alt={imageValue?.alt || block.icon?.displayName || ''}
+                                  className="w-full h-full object-contain"
+                                />
+                              ) : iconSlug ? (
+                                <button
+                                  type="button"
+                                  onClick={() => featureIconFileInputRefs.current[iconSlug]?.click()}
+                                  className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors p-4"
+                                >
+                                  <Upload className="h-8 w-8" />
+                                  <span className="text-xs font-body text-center">Click to upload icon</span>
+                                </button>
+                              ) : null}
+                            </div>
+
+                            {iconSlug && (
+                              <>
+                                <input
+                                  ref={(el) => { featureIconFileInputRefs.current[iconSlug] = el; }}
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/gif,image/svg+xml,image/webp"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) uploadFeatureIcon(iconSlug, file);
+                                    e.target.value = '';
+                                  }}
+                                />
+
+                                {uploadError && (
+                                  <p className="text-xs text-destructive font-body">{uploadError}</p>
+                                )}
+
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => featureIconFileInputRefs.current[iconSlug]?.click()}
+                                    disabled={isUploading}
+                                    className="font-button"
+                                  >
+                                    {isUploading ? (
+                                      <span className="flex items-center gap-1.5">
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uploading...
+                                      </span>
+                                    ) : hasImage ? 'Replace Image' : 'Upload Image'}
+                                  </Button>
+                                  {hasImage && (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeFeatureIcon(iconSlug)}
+                                      className="font-button text-destructive hover:text-destructive"
+                                    >
+                                      <X className="h-3.5 w-3.5 mr-1" /> Remove
+                                    </Button>
+                                  )}
+                                </div>
+
+                                <div className="space-y-1.5">
+                                  <Label htmlFor={block.iconAltSlug} className="font-body text-sm font-medium text-foreground">
+                                    Alt Text for accessibility
+                                  </Label>
+                                  <Input
+                                    id={block.iconAltSlug}
+                                    type="text"
+                                    value={formData[block.iconAltSlug] || ''}
+                                    onChange={(e) => {
+                                      handleChange(block.iconAltSlug, e.target.value);
+                                      if (imageValue?.url) {
+                                        handleChange(iconSlug, { ...imageValue, alt: e.target.value });
+                                      }
+                                    }}
+                                    placeholder="Describe this icon..."
+                                    className="font-body input-xs"
+                                  />
+                                </div>
+                              </>
+                            )}
+                          </div>
+                          <div className="space-y-4">
+                            {block.headline && renderField(block.headline)}
+                            {block.paragraph && renderField(block.paragraph)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : isRoomDetails ? (
                   // Clean 2-column layout: specs on the left, bed type +
                   // toggles on the right (bed type sits above the switches)
@@ -1314,20 +1712,17 @@ export default function ItemEditor({
                       {!isAmenitiesCollapsed && (
                         <div className="space-y-6">
                           {featuresField && renderField(featuresField)}
+                          {selectedAmenityIds.length > 0 && (
+                            <AmenitySortingGrid
+                              selectedIds={selectedAmenityIds}
+                              orderValue={typeof formData['amenity-display-order'] === 'string' ? formData['amenity-display-order'] : ''}
+                              amenityOptions={referenceOptions[AMENITIES_COLLECTION_ID] || []}
+                              onChange={(orderedIds) => handleChange('amenity-display-order', orderedIds.join(', '))}
+                            />
+                          )}
                           {policiesField && renderField(policiesField)}
                         </div>
                       )}
-                      <div className="mt-6 pt-4 border-t">
-                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                          Amenity Display Order
-                        </h4>
-                        <AmenitySortingGrid
-                          selectedIds={selectedAmenityIds}
-                          orderValue={typeof formData['amenity-display-order'] === 'string' ? formData['amenity-display-order'] : ''}
-                          amenityOptions={referenceOptions[AMENITIES_COLLECTION_ID] || []}
-                          onChange={(orderedIds) => handleChange('amenity-display-order', orderedIds.join(', '))}
-                        />
-                      </div>
                     </div>
                   );
                 })() : (
@@ -1455,90 +1850,9 @@ export default function ItemEditor({
         </DialogContent>
       </Dialog>
     </>
+    </ErrorBoundary>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

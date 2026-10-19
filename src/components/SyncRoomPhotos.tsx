@@ -3,9 +3,50 @@ import React, { useState } from 'react';
 import { RefreshCw, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
-import { Switch } from './ui/switch';
 import { Input } from './ui/input';
 import { baseUrl } from '../lib/base-url';
+
+/**
+ * Lightweight native toggle used in place of Radix's <Switch>.
+ *
+ * The Radix Switch relies on React context/hooks that can crash with
+ * "Cannot read properties of null (reading 'useState')" when more than one
+ * copy of React ends up in the bundle. A plain checkbox styled to look like
+ * a switch sidesteps that class of bug entirely while keeping the same UX.
+ */
+function SimpleToggle({
+  id,
+  checked,
+  onCheckedChange,
+}: {
+  id: string;
+  checked: boolean;
+  onCheckedChange: (value: boolean) => void;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+        checked ? 'bg-primary' : 'bg-muted'
+      }`}
+    >
+      <input
+        id={id}
+        type="checkbox"
+        role="switch"
+        aria-checked={checked}
+        checked={checked}
+        onChange={(e) => onCheckedChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0.5'
+        }`}
+      />
+    </label>
+  );
+}
 
 export default function SyncRoomPhotos() {
   const [expanded, setExpanded] = useState(false);
@@ -16,7 +57,10 @@ export default function SyncRoomPhotos() {
   const [width, setWidth] = useState('800');
   const [only, setOnly] = useState('');
 
-  const handleSync = async () => {
+  const handleSync = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     setSyncing(true);
     setResult(null);
 
@@ -69,7 +113,7 @@ export default function SyncRoomPhotos() {
       {expanded && (
         <div className="px-6 pb-6 space-y-4">
           <p className="text-sm text-muted-foreground font-body">
-            Synchronize room type images from your Mews PMS configuration. This will update the images field for all room types that have a matching Mews Room Type ID.
+            Append new room type images from your Mews PMS configuration. This adds any Mews photos that aren&apos;t already on the item to the end of its existing photo collection for all room types with a matching Mews Room Type ID &mdash; existing photos (synced or manually added) are never removed, reordered, or overwritten.
           </p>
 
           <div className="space-y-4 pt-2">
@@ -83,7 +127,7 @@ export default function SyncRoomPhotos() {
                   {write ? 'Will update Webflow items' : 'Dry run only (preview changes)'}
                 </p>
               </div>
-              <Switch
+              <SimpleToggle
                 id="write-mode"
                 checked={write}
                 onCheckedChange={setWrite}
@@ -97,10 +141,10 @@ export default function SyncRoomPhotos() {
                   Clear Empty
                 </Label>
                 <p className="text-xs text-muted-foreground font-body">
-                  Clear images when Mews has no photos
+                  Clear all existing photos when Mews has no photos for a room (overrides append behavior &mdash; otherwise rooms with no Mews photos are left untouched)
                 </p>
               </div>
-              <Switch
+              <SimpleToggle
                 id="clear-empty"
                 checked={clearEmpty}
                 onCheckedChange={setClearEmpty}
@@ -144,6 +188,7 @@ export default function SyncRoomPhotos() {
 
           {/* Sync Button */}
           <Button
+            type="button"
             onClick={handleSync}
             disabled={syncing}
             className="w-full font-button"
@@ -208,6 +253,10 @@ export default function SyncRoomPhotos() {
     </div>
   );
 }
+
+
+
+
 
 
 
