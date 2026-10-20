@@ -15,6 +15,11 @@ export interface HotspotMarker {
   x: number;
   y: number;
   amenityId: string;
+  /** Set when this marker corresponds to an already-published Photo Hotspot
+   * CMS item (its item id). Absent for markers placed in this session that
+   * haven't been saved yet — lets the caller tell creates apart from
+   * updates/deletes instead of blindly re-creating everything on save. */
+  itemId?: string;
 }
 
 export interface AmenityOption {
@@ -28,6 +33,11 @@ interface MultiHotspotTaggerProps {
   roomTypeId: string | null;
   amenityOptions: AmenityOption[];
   startDisplayOrder?: number;
+  /** Markers that already exist as published Photo Hotspot items for this
+   * photo (each carries an `itemId`), pre-loaded so re-opening the tagger
+   * doesn't look empty and cause editors to re-tag — and re-create —
+   * amenities that are already saved. */
+  initialMarkers?: HotspotMarker[];
   onSubmit: (markers: HotspotMarker[]) => Promise<void> | void;
   onCancel: () => void;
 }
@@ -49,11 +59,15 @@ export default function MultiHotspotTagger({
   photoFileId: _photoFileId,
   roomTypeId: _roomTypeId,
   amenityOptions,
+  initialMarkers = [],
   onSubmit,
   onCancel,
 }: MultiHotspotTaggerProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [markers, setMarkers] = useState<HotspotMarker[]>([]);
+  // Lazy-init so re-renders don't stomp on in-progress edits — this component
+  // is remounted fresh each time the tagger dialog opens for a photo.
+  const [markers, setMarkers] = useState<HotspotMarker[]>(() => initialMarkers);
+  const hadExistingMarkers = initialMarkers.length > 0;
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -112,7 +126,10 @@ export default function MultiHotspotTagger({
   const unassignedCount = markers.filter((m) => !m.amenityId).length;
 
   const handleSave = async () => {
-    if (markers.length === 0) {
+    // Zero markers is only an error for a photo that had nothing tagged yet—
+    // if it previously had saved hotspots, zero means "remove them all",
+    // which is a valid, intentional action.
+    if (markers.length === 0 && !hadExistingMarkers) {
       setError('Place at least one marker on the photo before saving.');
       return;
     }
@@ -142,6 +159,19 @@ export default function MultiHotspotTagger({
         </span>
       </div>
 
+      {hadExistingMarkers && (
+        <div className="flex items-center gap-4 text-[11px] text-muted-foreground font-body">
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full bg-primary border border-white shadow-sm" />
+            Already saved
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-full bg-accent border border-white shadow-sm" />
+            Not saved yet
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
         {photoUrl && !imageError ? (
           <div className="space-y-2">
@@ -170,8 +200,9 @@ export default function MultiHotspotTagger({
                   onPointerDown={handleMarkerPointerDown(marker.id)}
                   onPointerMove={handleMarkerPointerMove(marker.id)}
                   onPointerUp={handleMarkerPointerUp}
-                  className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full bg-accent border-2 border-white shadow-md cursor-grab active:cursor-grabbing flex items-center justify-center text-[11px] font-semibold text-white"
+                  className={`absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-md cursor-grab active:cursor-grabbing flex items-center justify-center text-[11px] font-semibold text-white ${marker.itemId ? 'bg-primary' : 'bg-accent'}`}
                   style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                  title={marker.itemId ? 'Already saved to the CMS' : 'Not saved yet'}
                 >
                   {index + 1}
                 </div>
@@ -198,7 +229,7 @@ export default function MultiHotspotTagger({
               key={marker.id}
               className="flex items-center gap-2 border border-border bg-card px-2 py-2"
             >
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-accent text-white text-[11px] font-semibold flex items-center justify-center">
+              <span className={`flex-shrink-0 w-5 h-5 rounded-full text-white text-[11px] font-semibold flex items-center justify-center ${marker.itemId ? 'bg-primary' : 'bg-accent'}`}>
                 {index + 1}
               </span>
               <Select
@@ -216,6 +247,11 @@ export default function MultiHotspotTagger({
                   ))}
                 </SelectContent>
               </Select>
+              {marker.itemId && (
+                <span className="flex-shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground font-body">
+                  Saved
+                </span>
+              )}
               <button
                 type="button"
                 aria-label={`Remove marker ${index + 1}`}

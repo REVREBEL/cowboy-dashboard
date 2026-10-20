@@ -13,6 +13,7 @@
     "build:push": "bash scripts/build-and-push.sh",
     "build:docs": "node ./scripts/build-master-doc.mjs",
     "sync:main": "bash scripts/sync-main-to-dev.sh",
+    "clean:cache": "rm -rf node_modules/.vite node_modules/.astro .astro dist 2>/dev/null || true && echo 'Dev cache cleared: node_modules/.vite, node_modules/.astro, .astro, dist'",
     "cleanup": "rm -rf /tmp/* /var/tmp/* /root/.npm /root/.cache /root/.local /app/lost+found/* /app/dist 2>/dev/null || true && echo 'Cleanup complete!' && df -h / | tail -1"
   },
   "dependencies": {

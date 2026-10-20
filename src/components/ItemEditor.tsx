@@ -5,7 +5,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { toast } from 'sonner';
-import { Info, Loader2, ChevronDown, ChevronUp, ExternalLink, Upload, X } from 'lucide-react';
+import { Info, Loader2, ChevronDown, ChevronUp, ExternalLink, Upload, X, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { organizeFieldsByGroup } from '../lib/field-groups';
 import { getFieldRows, getLayoutClasses } from '../lib/field-layouts';
@@ -23,7 +23,7 @@ import {
   extractAmenityIds,
   findRoomTypeIdForPhoto,
 } from '../lib/room-type-photos';
-import { fetchAllPhotoHotspots, type PhotoHotspotItem } from '../lib/photo-hotspots';
+import { fetchAllPhotoHotspots, hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots';
 import {
   Select,
   SelectContent,
@@ -123,6 +123,40 @@ const US_STATES: string[] = [
 const AMENITIES_COLLECTION_ID = '6abc8175a7bbdc92fa9e6599';
 const AMENITY_POLICY_TYPE_ID = '7c93dc1078791efcf798aff5800d16a3';
 
+// The Amenities collection's `type` and `category` fields are Webflow
+// Option fields — the raw value stored on each item is the option's ID,
+// not its human-readable name. These maps translate those IDs back to
+// display labels so group headers in the picker show real names instead
+// of opaque hex strings.
+const AMENITY_TYPE_LABELS: Record<string, string> = {
+  '908f603542153024f0605c52bd2b7baa': 'Feature',
+  '05da49184d5d40cc30467a9454b19ac3': 'Amenity',
+  '7c93dc1078791efcf798aff5800d16a3': 'Policy',
+  'a7e2402250f35527b6ad217a3e34fdca': 'Accessibility',
+  '938f68ca22b088e084fc90b4cba1aea7': 'Wellness',
+  '540b2385453e19174335160b7f7611bb': 'Nature or Environment',
+  '456b1d4fa69d63c00e317fcdd452b878': 'Activity',
+};
+const AMENITY_CATEGORY_LABELS: Record<string, string> = {
+  'f126f434fcb5bcbefbb11426e17d26cf': 'Property',
+  '37a31365e9f0c3a7d56ea3a0a181e416': 'Rooms',
+  'a936277f759399871935402251a8dabd': 'Outlet',
+  'c50c49095f890863307d345f9c2243d1': 'Location',
+  '506e24477ef5d706a5ff36ea5adb30e6': 'Other',
+};
+
+function amenityTypeLabel(value: string | null | undefined): string {
+  if (!value) return 'Standard';
+  const trimmed = value.toString().trim();
+  return AMENITY_TYPE_LABELS[trimmed] || trimmed || 'Standard';
+}
+
+function amenityCategoryLabel(value: string | null | undefined): string {
+  if (!value) return 'General';
+  const trimmed = value.toString().trim();
+  return AMENITY_CATEGORY_LABELS[trimmed] || trimmed || 'General';
+}
+
 function filterReferenceOptionsForField(field: Field, options: ReferenceOption[]): ReferenceOption[] {
   if (field.validations?.collectionId !== AMENITIES_COLLECTION_ID) return options;
   const normalizedSlug = field.slug.toLowerCase();
@@ -190,6 +224,7 @@ export default function ItemEditor({
 }: ItemEditorProps) {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [referenceOptions, setReferenceOptions] = useState<Record<string, ReferenceOption[]>>({});
   const [referenceLoading, setReferenceLoading] = useState<Record<string, boolean>>({});
@@ -606,44 +641,89 @@ export default function ItemEditor({
       .map(o => ({ id: o.id, name: o.name }));
   }, [formData, referenceOptions]);
 
+  // Pre-fills the tagger with whatever Photo Hotspot items already exist for
+  // the photo being opened (each carrying its CMS item id), so reopening the
+  // tagger shows what's already saved instead of looking empty — and so
+  // saving again can tell creates, updates, and deletes apart.
+  const taggerInitialMarkers: HotspotMarker[] = React.useMemo(() => {
+    if (!taggerImage) return [];
+    return hotspotsForPhoto(roomTypePhotoHotspots, taggerImage.fileId, taggerImage.url).map((h) => ({
+      id: h.id,
+      x: h.xPercent ?? 0,
+      y: h.yPercent ?? 0,
+      amenityId: h.amenityId || '',
+      itemId: h.id,
+    }));
+  }, [taggerImage, roomTypePhotoHotspots]);
+
   const handleTaggerSubmit = async (markers: HotspotMarker[]) => {
     if (!taggerImage || !PHOTO_HOTSPOTS_COLLECTION) return;
     const roomTypeName = formData.name || initialData?.name || '';
 
-    const items = markers.map((m) => {
-      const amenityName = taggerAmenityOptions.find(a => a.id === m.amenityId)?.name || '';
-      return {
-        fieldData: {
+    // Anything that was already saved for this photo but no longer has a
+    // matching marker (by itemId) was removed in the tagger UI and needs to
+    // be deleted from the CMS rather than left orphaned.
+    const existing = hotspotsForPhoto(roomTypePhotoHotspots, taggerImage.fileId, taggerImage.url);
+    const keptItemIds = new Set(markers.filter(m => m.itemId).map(m => m.itemId as string));
+    const toDelete = existing.filter(h => !keptItemIds.has(h.id));
+
+    try {
+      // The single-item CMS endpoint expects fieldData at the request root.
+      // The bulk endpoint's { items } wrapper produced "Missing required key 'fieldData'".
+      // Save each marker through the same contract used by handleSubmit —
+      // updating markers that already have an itemId in place, and only
+      // creating new CMS items for markers placed in this session.
+      for (const m of markers) {
+        const amenityName = taggerAmenityOptions.find(a => a.id === m.amenityId)?.name || '';
+        const fieldData: Record<string, unknown> = {
           name: `${roomTypeName} - ${amenityName}`,
-          slug: `${generateSlug(roomTypeName)}-${generateSlug(amenityName)}_${taggerImage.fileId}-${generateSlug(m.id)}`,
           'photo-url': taggerImage.url,
           'photo-file-id': taggerImage.fileId,
           'x-percent': m.x,
           'y-percent': m.y,
           amenity: m.amenityId,
           active: true,
-        },
-      };
-    });
+        };
 
-    try {
-      // The single-item CMS endpoint expects fieldData at the request root.
-      // The bulk endpoint's { items } wrapper produced "Missing required key 'fieldData'".
-      // Save each marker through the same contract used by handleSubmit.
-      for (const item of items) {
-        const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fieldData: item.fieldData }),
-        });
-
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
-          throw new Error(err.error || `Failed to save hotspots: ${res.statusText}`);
+        if (m.itemId) {
+          const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}/${m.itemId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fieldData }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
+            throw new Error(err.error || `Failed to update hotspot: ${res.statusText}`);
+          }
+        } else {
+          const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fieldData: {
+                ...fieldData,
+                slug: `${generateSlug(roomTypeName)}-${generateSlug(amenityName)}_${taggerImage.fileId}-${generateSlug(m.id)}`,
+              },
+            }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
+            throw new Error(err.error || `Failed to save hotspot: ${res.statusText}`);
+          }
         }
       }
 
-      toast.success(`${markers.length} hotspot${markers.length === 1 ? '' : 's'} tagged`, {
+      // Clean up hotspots the editor removed from the tagger.
+      for (const stale of toDelete) {
+        const res = await fetch(`${baseUrl}/api/cms/${PHOTO_HOTSPOTS_COLLECTION.id}/${stale.id}`, {
+          method: 'DELETE',
+        });
+        if (!res.ok) {
+          console.error(`Failed to delete removed hotspot ${stale.id}`);
+        }
+      }
+
+      toast.success(`${markers.length} hotspot${markers.length === 1 ? '' : 's'} saved`, {
         description: 'Published to the CMS.',
       });
       setTaggerImage(null);
@@ -652,10 +732,10 @@ export default function ItemEditor({
         const refreshed = await fetchAllPhotoHotspots(baseUrl);
         setRoomTypePhotoHotspots(refreshed);
       } catch (err) {
-        console.error('Failed to refresh photo hotspots after bulk save', err);
+        console.error('Failed to refresh photo hotspots after save', err);
       }
     } catch (err) {
-      console.error('Failed to bulk save hotspots', err);
+      console.error('Failed to save hotspots', err);
       toast.error('Failed to save hotspots', {
         description: err instanceof Error ? err.message : 'An error occurred',
       });
@@ -782,6 +862,43 @@ export default function ItemEditor({
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (itemId === 'new') return;
+
+    const itemLabel = formData.name || initialData?.name || 'this item';
+    if (typeof window !== 'undefined' && !window.confirm(`Delete "${itemLabel}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/cms/${collectionId}/${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' })) as { error?: string };
+        throw new Error(errorData.error || `Failed to delete: ${response.statusText}`);
+      }
+
+      toast.success('Item deleted', {
+        description: 'Redirecting to the list...',
+      });
+
+      setTimeout(() => {
+        window.location.href = `${baseUrl}/portal/${collectionSlug}`;
+      }, 500);
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast.error('Failed to delete item', {
+        description: err instanceof Error ? err.message : 'An error occurred',
+      });
+      setIsDeleting(false);
     }
   };
 
@@ -1228,8 +1345,8 @@ export default function ItemEditor({
           ? (() => {
               const categories = new Map<string, Map<string, GroupedItem[]>>();
               refOptions.forEach((opt) => {
-                const categoryKey = (opt as ReferenceOption).category?.toString().trim() || 'General';
-                const typeKey = (opt as ReferenceOption).type?.toString().trim() || 'Standard';
+                const categoryKey = amenityCategoryLabel((opt as ReferenceOption).category);
+                const typeKey = amenityTypeLabel((opt as ReferenceOption).type);
                 if (!categories.has(categoryKey)) categories.set(categoryKey, new Map());
                 const typesMap = categories.get(categoryKey)!;
                 if (!typesMap.has(typeKey)) typesMap.set(typeKey, []);
@@ -1850,9 +1967,52 @@ export default function ItemEditor({
                   const selectedAmenityIds: string[] = Array.isArray(formData['features-amenities'])
                     ? formData['features-amenities']
                     : [];
+                  const amenityOptionsList = referenceOptions[AMENITIES_COLLECTION_ID] || [];
+                  // Resolve each selected id to its full option (name + icon/
+                  // thumbnail) so the highlights grid below can render a
+                  // visual badge for it. Ids that haven't resolved yet
+                  // (options still loading) are simply skipped here.
+                  const selectedAmenityBadges = selectedAmenityIds
+                    .map(id => amenityOptionsList.find(o => o.id === id))
+                    .filter((o): o is ReferenceOption => !!o);
 
                   return (
                     <div className="space-y-6">
+                      {/* Selected Amenity Highlights: a dedicated, always-visible
+                          visual summary of every currently-selected amenity's
+                          icon/thumbnail + title, kept separate from (and above)
+                          the collapsible selection picker below. */}
+                      {selectedAmenityBadges.length > 0 && (
+                        <div className="p-5 border rounded-xl bg-background/50 mb-6 space-y-4">
+                          <h3 className="text-base font-bold tracking-wide border-b pb-2 mb-4">
+                            Selected Amenity Highlights
+                          </h3>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {selectedAmenityBadges.map(option => (
+                              <div
+                                key={option.id}
+                                className="flex flex-col items-center gap-2 p-3 border border-border rounded-lg bg-background text-center"
+                              >
+                                {option.image?.url ? (
+                                  <img
+                                    src={option.image.url}
+                                    alt={option.name}
+                                    className="w-12 h-12 object-contain rounded-md"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center text-muted-foreground text-[10px] font-body">
+                                    No icon
+                                  </div>
+                                )}
+                                <span className="text-xs font-body text-foreground leading-snug line-clamp-2">
+                                  {option.name}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {!isAmenitiesCollapsed && (
                         <div className="space-y-6">
                           {featuresField && renderField(featuresField)}
@@ -1860,7 +2020,7 @@ export default function ItemEditor({
                             <AmenitySortingGrid
                               selectedIds={selectedAmenityIds}
                               orderValue={typeof formData['amenity-display-order'] === 'string' ? formData['amenity-display-order'] : ''}
-                              amenityOptions={referenceOptions[AMENITIES_COLLECTION_ID] || []}
+                              amenityOptions={amenityOptionsList}
                               onChange={(orderedIds) => handleChange('amenity-display-order', orderedIds.join(', '))}
                             />
                           )}
@@ -1995,22 +2155,37 @@ export default function ItemEditor({
           </section>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-8 mt-10 border-t border-border sticky bottom-0 bg-background pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <Button 
-            type="submit" 
-            disabled={isSaving}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-button w-full sm:w-auto min-h-[44px]"
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={() => window.history.back()}
-            className="font-button w-full sm:w-auto min-h-[44px]"
-          >
-            Cancel
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-3 pt-8 mt-10 border-t border-border sticky bottom-0 bg-background pb-6 -mx-4 px-4 sm:mx-0 sm:px-0 sm:items-center sm:justify-between">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              type="submit" 
+              disabled={isSaving}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-button w-full sm:w-auto min-h-[44px]"
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => window.history.back()}
+              className="font-button w-full sm:w-auto min-h-[44px]"
+            >
+              Cancel
+            </Button>
+          </div>
+
+          {!isNewItemPage && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isDeleting}
+              onClick={handleDelete}
+              className="font-button w-full sm:w-auto min-h-[44px] text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-1.5" />
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          )}
         </div>
       </form>
 
@@ -2030,6 +2205,7 @@ export default function ItemEditor({
               photoFileId={taggerImage.fileId || ''}
               roomTypeId={itemId && itemId !== 'new' ? itemId : null}
               amenityOptions={taggerAmenityOptions}
+              initialMarkers={taggerInitialMarkers}
               onSubmit={handleTaggerSubmit}
               onCancel={() => setTaggerImage(null)}
             />

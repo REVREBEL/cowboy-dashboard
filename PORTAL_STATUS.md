@@ -8,6 +8,33 @@
 
 ## Current State (Latest Session) — Updated
 
+### ✅ New: "Selected Amenity Highlights" section in the Room Types editor
+**Ask**: The visual icon/thumbnail badges for selected amenities were crammed directly below the Features & Amenities selection buttons, making it hard to see at a glance which amenities were already tagged on a Room Type.
+
+**Shipped**: In `src/components/ItemEditor.tsx`'s Amenities & Policies section, added a dedicated, always-visible "Selected Amenity Highlights" card — a responsive grid (`grid-cols-2` up to `lg:grid-cols-6`) of badges, each showing the selected amenity's icon/thumbnail image (with a "No icon" placeholder tile when missing) and its title. This card sits above the collapsible selection picker and `AmenitySortingGrid`, so the summary stays visible even when the picker itself is collapsed.
+
+Verified with `npx astro check` — 0 errors, 0 warnings.
+
+### ✅ New: Delete item support in the Item Editor
+**Shipped**: `ItemEditor.tsx` now has a **Delete** button (with a `window.confirm()` guard, matching the existing `removeFeatureIcon` confirmation pattern) that calls the existing `DELETE /api/cms/[collectionId]/[itemId]` route and redirects back to the collection's list page on success.
+
+### ✅ Fixed: Amenities & Policies grouped picker headers showing raw CMS option IDs instead of labels
+**Symptom**: The grouped headers above the Features & Amenities / Policies selection buttons (e.g. "Feature", "Amenity", "Policy") were rendering as raw Webflow Option field IDs instead of their human-readable names.
+
+**Fix**: Added label maps in `ItemEditor.tsx` for the Amenities collection's `type` and `category` Option fields (sourced from the collection schema) so grouped picker headers resolve to their proper display labels instead of raw option IDs.
+
+### ✅ Fixed: Collection list pages silently capped at 50 items
+**Symptom**: Items beyond the 50th in a collection (e.g. "The Cowboy Bathing Ritual" — the 65th of 68 live Amenities) never appeared in the portal's collection list pages, even though they existed, were published, and weren't archived/draft.
+
+**Root cause**: `src/pages/portal/[slug].astro` fetched only a single page of up to 50 items from the live-items endpoint instead of paginating through the full collection.
+
+**Fix**: Added a pagination loop in `src/pages/portal/[slug].astro` that requests pages of 100 items at a time (using the response's `pagination.total`) until every live item has been fetched, with a 2,000-item safety cap to prevent runaway requests. Every collection now fully loads in the portal regardless of size.
+
+### ✅ New: `npm run clean:cache` script
+**Shipped**: Added a `clean:cache` script to `package.json` that clears `node_modules/.vite`, `node_modules/.astro`, `.astro`, and `dist` in one command — the caches most likely to go stale and cause intermittent "collection items not loading" / React hook-dispatcher errors in local dev. Use this (then restart the dev server) whenever the portal starts behaving inconsistently without a corresponding code change.
+
+---
+
 ### ✅ New: Room Photo Sync now appends instead of replacing
 **Ask**: Running the Mews room-photo sync was overwriting each Room Type's existing `images` field with whatever Mews returned, silently discarding manually-added photos and losing custom alt text/ordering on every re-run.
 

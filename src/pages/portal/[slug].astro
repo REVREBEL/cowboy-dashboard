@@ -66,12 +66,26 @@ let error: string | null = null;
 try {
   console.log(`Fetching items for collection ${collection.id}...`);
   
-  // Reduce limit to prevent memory issues
-  const itemsResponse = await client.collections.items.listItemsLive(collection.id, {
-    limit: 50,
-    offset: 0
-  });
-  items = itemsResponse.items || [];
+  // Paginate through all live items - the Webflow API caps each request at
+  // 100 items, and collections can easily exceed that, so keep requesting
+  // pages until we've retrieved everything (or hit a sane safety cap).
+  const PAGE_SIZE = 100;
+  const MAX_ITEMS = 2000;
+  let offset = 0;
+  let total = Infinity;
+
+  while (items.length < total && items.length < MAX_ITEMS) {
+    const itemsResponse = await client.collections.items.listItemsLive(collection.id, {
+      limit: PAGE_SIZE,
+      offset
+    });
+    const page = itemsResponse.items || [];
+    items = items.concat(page);
+    total = itemsResponse.pagination?.total ?? items.length;
+    offset += PAGE_SIZE;
+
+    if (page.length === 0) break; // safety: avoid infinite loop
+  }
   
   // Sort items client-side using the collection's configured sort field, if any
   if (collection.sortField) {
