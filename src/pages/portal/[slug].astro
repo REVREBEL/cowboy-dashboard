@@ -8,7 +8,6 @@ import MainLayout from '../../layouts/main.astro';
 import { COLLECTIONS } from '../../lib/collections-config';
 import { WebflowClient } from 'webflow-api';
 import { baseUrl } from '../../lib/base-url';
-import SyncRoomPhotos from '../../components/SyncRoomPhotos';
 
 const { slug } = Astro.params;
 const pageClass = 'portal-collection';
@@ -176,12 +175,6 @@ try {
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      
-      {slug === 'room-types' && (
-        <div class="mb-8">
-          <SyncRoomPhotos client:only="react" />
-        </div>
-      )}
       
       {error ? (
         <div class="border border-destructive bg-destructive/10 px-4 py-3 mb-6">

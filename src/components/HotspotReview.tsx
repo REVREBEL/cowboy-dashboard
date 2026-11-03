@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ImageOff, Loader2, Pencil, Tag } from 'lucide-react';
 import RoomPhotoPicker from './RoomPhotoPicker';
-import { fetchAllPhotoHotspots, hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots';
+import { fetchAllPhotoHotspots, hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots-utils';
 
 interface HotspotReviewProps {
   baseUrl: string;

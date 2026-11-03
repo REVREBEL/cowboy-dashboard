@@ -16,6 +16,7 @@ import HotspotPicker from './HotspotPicker';
 import MultiHotspotTagger, { type HotspotMarker, type AmenityOption } from './MultiHotspotTagger';
 import RoomPhotoPicker from './RoomPhotoPicker';
 import AmenitySortingGrid from './AmenitySortingGrid';
+import RestrictedAmenitiesPicker from './RestrictedAmenitiesPicker';
 import ErrorBoundary from './ErrorBoundary';
 import { uploadImageFile, type ImageData } from '../lib/image-upload-client';
 import {
@@ -23,7 +24,11 @@ import {
   extractAmenityIds,
   findRoomTypeIdForPhoto,
 } from '../lib/room-type-photos';
-import { fetchAllPhotoHotspots, hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots';
+import {
+  fetchAllPhotoHotspots,
+  hotspotsForPhoto,
+  type PhotoHotspotItem,
+} from '../lib/photo-hotspots-utils';
 import {
   Select,
   SelectContent,
@@ -244,6 +249,25 @@ export default function ItemEditor({
   // to a separate page per photo.
   const isRoomTypes = collectionSlug === 'room-types';
   const [roomTypePhotoHotspots, setRoomTypePhotoHotspots] = useState<PhotoHotspotItem[]>([]);
+
+  // When a gallery photo is replaced in-place (see MultiImageField's
+  // "Replace" action), the CMS-side re-key already happened server-side by
+  // the time this fires — this just mirrors that change into local state so
+  // markers immediately show up on the new photo without a page refresh.
+  const handlePhotoRekeyed = React.useCallback((
+    oldPhoto: { fileId?: string | null; url?: string | null },
+    newPhoto: { fileId: string; url: string },
+    updatedCount: number
+  ) => {
+    if (updatedCount <= 0) return;
+    setRoomTypePhotoHotspots(prev => {
+      const matchedIds = new Set(hotspotsForPhoto(prev, oldPhoto.fileId, oldPhoto.url).map(h => h.id));
+      if (matchedIds.size === 0) return prev;
+      return prev.map(h =>
+        matchedIds.has(h.id) ? { ...h, photoFileId: newPhoto.fileId, photoUrl: newPhoto.url } : h
+      );
+    });
+  }, []);
 
   // Multi-marker amenity tagging: lets Room Types editors drop several
   // amenity hotspots on a single photo in one sitting (via
@@ -1014,7 +1038,14 @@ export default function ItemEditor({
           </div>
         );
 
-      case 'Number':
+      case 'Number': {
+        // The Sort and Max Quantity Per Room fields on Add Ons are small,
+        // bounded numeric inputs — render them at roughly half the width
+        // of a normal number field instead of the default input-xs sizing.
+        const isCompactNumberField =
+          collectionSlug === 'add-ons' &&
+          (field.slug === 'sort' || field.slug === 'max-quantity-per-stay');
+
         return (
           <div key={field.slug} className="space-y-1.5">
             <FieldLabel 
@@ -1029,10 +1060,11 @@ export default function ItemEditor({
               value={value ?? ''}
               onChange={(e) => handleChange(field.slug, e.target.value ? parseFloat(e.target.value) : null)}
               required={field.required}
-              className="font-body input-xs"
+              className={`font-body ${isCompactNumberField ? 'max-w-[9rem]' : 'input-xs'}`}
             />
           </div>
         );
+      }
 
       case 'Bool':
       case 'Switch':
@@ -1141,6 +1173,8 @@ export default function ItemEditor({
             onTagHotspot={canTagHotspot ? handleTagHotspot : undefined}
             onReviewHotspots={canReviewHotspots ? handleReviewHotspots : undefined}
             photoHotspots={isRoomTypes ? roomTypePhotoHotspots : undefined}
+            roomTypeId={isRoomTypes && itemId !== 'new' ? itemId : undefined}
+            onPhotoRekeyed={isRoomTypes ? handlePhotoRekeyed : undefined}
           />
         );
 
@@ -1159,6 +1193,8 @@ export default function ItemEditor({
               onTagHotspot={canTagHotspot ? handleTagHotspot : undefined}
               onReviewHotspots={canReviewHotspots ? handleReviewHotspots : undefined}
               photoHotspots={isRoomTypes ? roomTypePhotoHotspots : undefined}
+              roomTypeId={isRoomTypes && itemId !== 'new' ? itemId : undefined}
+              onPhotoRekeyed={isRoomTypes ? handlePhotoRekeyed : undefined}
             />
           );
         }
@@ -2024,6 +2060,15 @@ export default function ItemEditor({
                               onChange={(orderedIds) => handleChange('amenity-display-order', orderedIds.join(', '))}
                             />
                           )}
+                          {selectedAmenityIds.length > 0 && (
+                            <RestrictedAmenitiesPicker
+                              selectedIds={selectedAmenityIds}
+                              orderValue={typeof formData['amenity-display-order'] === 'string' ? formData['amenity-display-order'] : ''}
+                              restrictedValue={typeof formData['restricted-amenity-ids'] === 'string' ? formData['restricted-amenity-ids'] : ''}
+                              amenityOptions={amenityOptionsList}
+                              onChange={(restrictedIds) => handleChange('restricted-amenity-ids', restrictedIds.join(', '))}
+                            />
+                          )}
                           {policiesField && renderField(policiesField)}
                         </div>
                       )}
@@ -2065,6 +2110,31 @@ export default function ItemEditor({
                         collectionSlug === 'photo-hotspots' &&
                         rowSlugs.includes('x-percent') &&
                         rowSlugs.includes('y-percent');
+
+                      // Add Ons: Enable Quantity + Max Quantity Per Room stack
+                      // together in column 1, with Sort occupying column 2.
+                      const isAddOnQuantityRow =
+                        collectionSlug === 'add-ons' &&
+                        rowSlugs.includes('enable-quantity') &&
+                        rowSlugs.includes('max-quantity-per-stay') &&
+                        rowSlugs.includes('sort');
+
+                      if (isAddOnQuantityRow) {
+                        const enableQuantityField = fieldMap.get('enable-quantity');
+                        const maxQuantityField = fieldMap.get('max-quantity-per-stay');
+                        const sortField = fieldMap.get('sort');
+                        return (
+                          <div key={`${group.name}-${rowIndex}`} className="grid grid-cols-12 gap-4">
+                            <div className="col-span-12 sm:col-span-6 flex flex-col gap-4">
+                              {enableQuantityField && renderField(enableQuantityField)}
+                              {maxQuantityField && renderField(maxQuantityField)}
+                            </div>
+                            <div className="col-span-12 sm:col-span-6">
+                              {sortField && renderField(sortField)}
+                            </div>
+                          </div>
+                        );
+                      }
 
                       if (isHotspotPositionRow) {
                         const xField = fieldMap.get('x-percent');
@@ -2195,21 +2265,23 @@ export default function ItemEditor({
           if (!open) setTaggerImage(null);
         }}
       >
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border">
             <DialogTitle className="font-heading">Tag amenity hotspots</DialogTitle>
           </DialogHeader>
-          {taggerImage && (
-            <MultiHotspotTagger
-              photoUrl={taggerImage.url || ''}
-              photoFileId={taggerImage.fileId || ''}
-              roomTypeId={itemId && itemId !== 'new' ? itemId : null}
-              amenityOptions={taggerAmenityOptions}
-              initialMarkers={taggerInitialMarkers}
-              onSubmit={handleTaggerSubmit}
-              onCancel={() => setTaggerImage(null)}
-            />
-          )}
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+            {taggerImage && (
+              <MultiHotspotTagger
+                photoUrl={taggerImage.url || ''}
+                photoFileId={taggerImage.fileId || ''}
+                roomTypeId={itemId && itemId !== 'new' ? itemId : null}
+                amenityOptions={taggerAmenityOptions}
+                initialMarkers={taggerInitialMarkers}
+                onSubmit={handleTaggerSubmit}
+                onCancel={() => setTaggerImage(null)}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>

@@ -64,3 +64,25 @@ Entry point wiring:
   to each → Save → all hotspot items are created and published live in one
   request, immediately visible via the existing "Review tags" overlay
   (`src/components/HotspotReview.tsx`).
+
+---
+
+## Follow-up bug fix: orphaned hotspots on "The Chalet"
+
+16 previously-saved Photo Hotspot items on "The Chalet" room type weren't
+rendering as pins because the asset-id matching logic in
+`src/lib/photo-hotspots.ts` was comparing the **Webflow site id** (shared by
+every asset on the site) instead of each photo's own unique file id, due to
+a non-global regex only ever grabbing the first 24-hex-char match out of a
+CDN url.
+
+Fixed by replacing the old `extractAssetId()` helper with `extractAssetIds()`,
+which extracts *every* hex id in a string and discards the leading site-id
+match specifically for `website-files.com` CDN urls. `hotspotsForPhoto()` was
+updated to match on substring containment of `photo-file-id` in the image's
+`photo-url`, or an overlap between the hotspot's and image's extracted asset
+id sets. See `HOTSPOT_ARCHITECTURE_REF.md` ("Bug fix — Orphaned hotspots due
+to site-id collision in asset-id matching") for full details.
+
+Verified with `npx astro check` (0 errors, 0 warnings) and confirmed all 16
+hotspots on "The Chalet" now resolve correctly.

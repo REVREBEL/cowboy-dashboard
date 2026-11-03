@@ -348,4 +348,53 @@ Existing Components & Specs:
 user can pick a photo, drop/drag any number of amenity pins, assign an
 amenity to each, and save/publish all of them live in a single action.
 
+## Bug fix — Orphaned hotspots due to site-id collision in asset-id matching
+
+**Symptom:** "The Chalet" room type had 16 Photo Hotspots saved in the CMS
+that never rendered as pins in `HotspotReview.tsx` / the editor overlay —
+they appeared "orphaned" even though their `photo-file-id`/`photo-url`
+values looked plausible.
+
+**Root cause:** `src/lib/photo-hotspots.ts` matched a saved hotspot to a
+gallery photo by extracting a single 24-character hex id from each side's
+`photo-file-id`/`photo-url` (via a now-removed `extractAssetId()` helper)
+and comparing them. Webflow CDN urls have the shape:
+
+```
+https://cdn.prod.website-files.com/{siteId}/{assetId}_{filename}
+```
+
+Both `{siteId}` and `{assetId}` are 24-character hex strings, and the regex
+used (`/[a-f0-9]{24}/i`, no `g` flag) always grabbed the **first** match —
+the site id — instead of the asset's own file id. Since every asset on the
+site shares the same site id, this made the "fallback" matching logic
+effectively meaningless (or, worse, caused false positives/negatives
+depending on which side's string happened to be a bare id vs. a full CDN
+url).
+
+**Fix (in `src/lib/photo-hotspots.ts`):**
+- Replaced `extractAssetId()` (singular, first-match-only) with
+  `extractAssetIds()` (plural), which:
+  - Uses a global regex (`/[a-f0-9]{24}/gi`) to collect **every** 24-hex-char
+    id in the string.
+  - If the string is a Webflow CDN url (contains `website-files.com`),
+    discards the first match (the shared site id) and returns only the
+    remaining id(s) — the asset's own fileId, plus a legacy asset id segment
+    for older-style urls, if present.
+  - For non-CDN-url inputs (e.g. a bare `photo-file-id` value with no site id
+    prefix), returns all matches as-is.
+- Rewrote `hotspotsForPhoto()` to match a hotspot to a gallery photo when
+  *either*:
+  1. The photo's own `photo-url` contains the hotspot's saved
+     `photo-file-id` as a direct substring (fast path, handles the common
+     case where `photo-file-id` was saved as a bare id), **or**
+  2. Any asset id extracted (via `extractAssetIds()`) from the hotspot's
+     `photo-file-id`/`photo-url` overlaps with the set of asset ids extracted
+     from the gallery photo's own `fileId`/`url` — this is the fallback that
+     now correctly ignores the shared site-id segment.
+
+**Verification:** `npx astro check` → 0 errors, 0 warnings. Confirmed all 16
+previously-orphaned hotspots on "The Chalet" now resolve and render
+correctly.
+
 

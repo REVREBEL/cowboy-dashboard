@@ -1,6 +1,6 @@
 import { WebflowClient } from 'webflow-api';
 
-type Locals =
+export type Locals =
   | {
       runtime?: {
         env?: Record<string, string | undefined>;

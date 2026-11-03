@@ -1,17 +1,13 @@
-# Repository Agent Guidelines & Skill Rules
+# Repository Architecture Guidelines & Development Standards
 
-## 1. Skill & Tool Execution Rules
-- **Check Skills First:** Before executing multi-step tasks, inspect `.claude/skills/` and `skills-lock.json` to identify active tools and functions.
-- **No External/Fake Tool Calls:** Never attempt to call non-existent or external tool declarations (such as `list-cms-collections` or `get-cms-collection-details`).
-- **Local Schema Resolution:** Always inspect `cms-collections-documentation.json`, `src/lib/collections-config.ts`, and `src/lib/field-groups.ts` locally via terminal/file commands to resolve Webflow CMS collection schemas and field names.
+## 1. Schema Resolution & Tooling Workflow
+- **Skill Definitions:** Workspace skills and capabilities are specified in `.claude/skills/` and `skills-lock.json`.
+- **Local Schema Authority:** Webflow CMS collection schemas, relationships, and field names are resolved locally from the repository filesystem (`cms-collections-documentation.json`, `src/lib/collections-config.ts`, and `src/lib/field-groups.ts`).
+- **Environment Tooling Scope:** Remote schema discovery commands (such as `list-cms-collections` or `get-cms-collection-details`) may not enabled in this environment. All collection lookups rely on the local documentation files mentioned above.
 
 ## 2. Webflow CMS Authentication Standard
-- Standardize all Webflow CMS API calls using `createCmsClient(locals)` or `getCmsToken(locals)` from `src/lib/webflow-client.ts`.
-- Strictly use `WEBFLOW_CMS_API_TOKEN`.
+- Webflow CMS API operations must standardly use `createCmsClient(locals)` or `getCmsToken(locals)` imported from `src/lib/webflow-client.ts`.
+- CMS operations authenticate against `WEBFLOW_CMS_API_TOKEN, which has full read/write accesss.
 
-## 3. Quality & Build Verification
-- After completing TypeScript/Astro edits, always run `npx astro check` to verify there are 0 build errors before finishing.
-
-
-## NOTE
-The tool `list-cms-collections` is not available in this environment. Please do not call external CMS schema tools.
+## 3. Code Verification Standard
+- Following any TypeScript or Astro component edits, execute `npx astro check` in the terminal to ensure zero type errors and clean build status before completing tasks.

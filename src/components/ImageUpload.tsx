@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -26,6 +26,19 @@ export default function ImageUpload({
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // `value` is often `null`/undefined on first render (e.g. when the parent
+  // form's data loads asynchronously after mount with `client:only="react"`),
+  // so the `useState` initializer above can miss the real alt text. Re-sync
+  // whenever the underlying image identity (url) changes, without clobbering
+  // the user's in-progress edits to the alt field.
+  const lastSyncedUrlRef = useRef<string | undefined>(value?.url);
+  useEffect(() => {
+    if (value?.url !== lastSyncedUrlRef.current) {
+      lastSyncedUrlRef.current = value?.url;
+      setAltText(value?.alt || '');
+    }
+  }, [value?.url, value?.alt]);
 
   const handleAltTextChange = (newAlt: string) => {
     setAltText(newAlt);
@@ -146,7 +159,7 @@ export default function ImageUpload({
                 Click to upload or drag and drop
               </p>
               <p className="text-xs font-body text-muted-foreground">
-                JPG, PNG, GIF, SVG, or WebP (max 10MB)
+                JPG, PNG, GIF, SVG, or WebP (max 4MB)
               </p>
             </div>
           )}

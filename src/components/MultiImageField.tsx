@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { Loader2, Upload, X, AlertCircle, MapPin, Tags, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
+import { Loader2, Upload, X, AlertCircle, MapPin, Tags, Pencil, RefreshCw, GripVertical } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -11,7 +12,19 @@ import {
   DialogTitle,
 } from './ui/dialog';
 import { uploadImageFile, type ImageData } from '../lib/image-upload-client';
-import { hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots';
+import { extractAssetIds, hotspotsForPhoto, type PhotoHotspotItem } from '../lib/photo-hotspots-utils';
+import { cn } from '../lib/utils';
+
+/**
+ * Resolves the best available asset id for a photo: the explicit `fileId`
+ * from the upload response, falling back to a legacy `id` field (some older
+ * records store the asset id there instead), and finally falling back to any
+ * 24-hex-char asset id embedded directly in the photo's CDN `url` — so
+ * matching/re-keying still works even if `fileId` wasn't persisted.
+ */
+function resolveFileId(photo: { fileId?: string | null; id?: string | null; url?: string | null }): string | undefined {
+  return photo.fileId || photo.id || extractAssetIds(photo.url)[0] || undefined;
+}
 
 interface FieldLabelProps {
   displayName: string;
@@ -48,6 +61,23 @@ interface MultiImageFieldProps {
    * instead of requiring a click-through per hotspot.
    */
   photoHotspots?: PhotoHotspotItem[];
+  /**
+   * The Room Type item this gallery belongs to (only when it's a saved item, i.e. not
+   * `'new'`). When provided, replacing a photo also re-points any Photo Hotspots pinned
+   * to the old file at the new one via `/api/cms/rekey-photo`, so existing amenity tags
+   * aren't orphaned.
+   */
+  roomTypeId?: string | null;
+  /**
+   * Called after a successful photo replace + hotspot re-key, so the caller can update
+   * its own `photoHotspots` state in place (re-pointing matched hotspots at the new
+   * photo) without requiring a page refresh.
+   */
+  onPhotoRekeyed?: (
+    oldPhoto: { fileId?: string | null; url?: string | null },
+    newPhoto: { fileId: string; url: string },
+    updatedCount: number
+  ) => void;
 }
 
 export default function MultiImageField({
@@ -60,6 +90,8 @@ export default function MultiImageField({
   onTagHotspot,
   onReviewHotspots,
   photoHotspots,
+  roomTypeId,
+  onPhotoRekeyed,
 }: MultiImageFieldProps) {
   const images = (value || []).filter((img): img is ImageData => !!img?.url);
 
@@ -70,6 +102,20 @@ export default function MultiImageField({
   const [dragActive, setDragActive] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Thumbnail reordering via native HTML5 drag-and-drop. `draggedIndex` tracks
+  // the image currently being dragged (via its grip handle); `dragOverIndex`
+  // tracks whichever thumbnail the pointer is currently hovering over, so we
+  // can show a drop-target highlight.
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // "Replace Photo" — swaps the file backing an existing gallery slot in place,
+  // preserving its position (and alt text) in the images array.
+  const [replaceTargetIndex, setReplaceTargetIndex] = useState<number | null>(null);
+  const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+  const [replaceError, setReplaceError] = useState<string | null>(null);
+  const replaceFileInputRef = useRef<HTMLInputElement>(null);
 
   const activeImage = activeIndex !== null ? images[activeIndex] : null;
 
@@ -121,7 +167,11 @@ export default function MultiImageField({
       }
       onChange([...images, ...uploaded]);
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      setUploadError(message);
+      toast.error('Upload failed', {
+        description: message,
+      });
     } finally {
       setUploading(false);
     }
@@ -137,6 +187,115 @@ export default function MultiImageField({
     }
   };
 
+  const triggerReplacePhoto = (index: number) => {
+    setReplaceError(null);
+    setReplaceTargetIndex(index);
+    replaceFileInputRef.current?.click();
+  };
+
+  const handleReplaceFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    const targetIndex = replaceTargetIndex;
+
+    // Reset the input right away so selecting the same file again still fires onChange.
+    if (replaceFileInputRef.current) {
+      replaceFileInputRef.current.value = '';
+    }
+
+    if (!file || targetIndex === null || !images[targetIndex]) {
+      setReplaceTargetIndex(null);
+      return;
+    }
+
+    const oldImage = images[targetIndex];
+    const oldPhoto = { fileId: resolveFileId(oldImage) || null, url: oldImage.url || null };
+
+    setReplacingIndex(targetIndex);
+    setReplaceError(null);
+
+    try {
+      const uploaded = await uploadImageFile(file, baseUrl);
+      const uploadedFileId = resolveFileId(uploaded);
+      const previousAlt = oldImage.alt;
+      const updated = [...images];
+      updated[targetIndex] = {
+        fileId: uploadedFileId,
+        url: uploaded.url,
+        alt: previousAlt || file.name.replace(/\.[^/.]+$/, ''),
+      };
+      onChange(updated);
+      if (activeIndex === targetIndex) {
+        setActiveAlt(updated[targetIndex].alt || '');
+      }
+
+      // Keep any existing Photo Hotspots pinned to the old file re-pointed at
+      // the new one, so tagged amenity markers stay attached without
+      // requiring a page refresh.
+      // eslint-disable-next-line no-console
+      console.log('[rekey-debug] replace condition check:', {
+        roomTypeId,
+        oldPhoto,
+        uploadedFileId,
+        uploadedUrl: uploaded.url,
+        willFireRekey: !!(roomTypeId && (oldPhoto.fileId || oldPhoto.url) && uploadedFileId && uploaded.url),
+      });
+      if (roomTypeId && (oldPhoto.fileId || oldPhoto.url) && uploadedFileId && uploaded.url) {
+        const newPhoto = { fileId: uploadedFileId, url: uploaded.url };
+        try {
+          console.log('[rekey-debug] calling /api/cms/rekey-photo with:', { roomTypeId, oldPhoto, newPhoto });
+          const res = await fetch(`${baseUrl}/api/cms/rekey-photo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roomTypeId, oldPhoto, newPhoto }),
+          });
+          const data = (await res.json().catch(() => ({}))) as {
+            success?: boolean;
+            updatedCount?: number;
+            error?: string;
+            warning?: string;
+          };
+          console.log('[rekey-debug] /api/cms/rekey-photo response:', { status: res.status, ok: res.ok, data });
+          if (!res.ok || !data.success) {
+            throw new Error(data.error || 'Failed to re-link tagged amenities to the new photo.');
+          }
+          const updatedCount = data.updatedCount ?? 0;
+          onPhotoRekeyed?.(oldPhoto, newPhoto, updatedCount);
+          if (data.warning) {
+            // No hotspots matched the old photo — not an error, but worth a
+            // clear heads-up so the user isn't surprised if markers don't show up.
+            toast.warning('Photo replaced', {
+              description: data.warning,
+            });
+          } else {
+            toast.success('Photo replaced', {
+              description: `${updatedCount} tagged amenity hotspot${updatedCount === 1 ? '' : 's'} re-linked to the new photo.`,
+            });
+          }
+        } catch (rekeyErr) {
+          console.error('Failed to rekey photo hotspots after replace:', rekeyErr);
+          toast.error('Photo replaced, but hotspots may need manual review', {
+            description: rekeyErr instanceof Error ? rekeyErr.message : 'Failed to re-link tagged amenities.',
+          });
+        }
+      } else {
+        toast.success('Photo replaced');
+      }
+    } catch (err) {
+      // Upload (or re-key) failed before the new image was committed via
+      // onChange above, so the old photo/thumbnail is left exactly as it
+      // was — no broken/temporary thumbnail is ever shown. Surface a clear
+      // toast in addition to the inline banner so the failure isn't missed.
+      const message = err instanceof Error ? err.message : 'Failed to replace photo';
+      setReplaceError(message);
+      toast.error('Photo replace failed', {
+        description: message,
+      });
+    } finally {
+      setReplacingIndex(null);
+      setReplaceTargetIndex(null);
+    }
+  };
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -147,7 +306,46 @@ export default function MultiImageField({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  // --- Thumbnail reorder drag-and-drop (native HTML5 DnD, zero dependencies) -
+
+  const handleDragStart = (index: number, e: React.DragEvent) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox requires data to be set for the drag to initiate.
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (index: number, e: React.DragEvent) => {
+    // Required so this element is a valid drop target.
+    e.preventDefault();
+    if (index !== draggedIndex) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (targetIndex: number, e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updated = [...images];
+    const [movedItem] = updated.splice(draggedIndex, 1);
+    updated.splice(targetIndex, 0, movedItem);
+    onChange(updated);
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
@@ -178,19 +376,49 @@ export default function MultiImageField({
           {images.map((img, index) => {
             const matches = photoHotspots ? getMatches(img) : [];
             const activeCount = matches.filter((h) => h.active).length;
+            const canDrag = images.length > 1 && !uploading;
             return (
-              <button
+              <div
                 key={img.fileId || img.url || index}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => openModal(index)}
-                className="group relative aspect-square border border-border bg-muted overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openModal(index);
+                  }
+                }}
+                draggable={canDrag}
+                onDragStart={(e) => handleDragStart(index, e)}
+                onDragOver={(e) => handleDragOver(index, e)}
+                onDrop={(e) => handleDrop(index, e)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  'group relative aspect-square rounded-lg border border-border bg-muted overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-150',
+                  canDrag && 'cursor-grab active:cursor-grabbing',
+                  draggedIndex === index && 'opacity-40 scale-95 border-dashed border-primary',
+                  dragOverIndex === index &&
+                    draggedIndex !== index &&
+                    'ring-2 ring-primary ring-offset-2 border-primary scale-[1.02]'
+                )}
                 title={img.alt || `Image ${index + 1}`}
               >
                 <img
                   src={img.url}
                   alt={img.alt || ''}
+                  draggable={false}
                   className="w-full h-full object-cover transition-opacity group-hover:opacity-80"
                 />
+                {canDrag && (
+                  <span
+                    aria-hidden="true"
+                    title="Drag to reorder"
+                    className="absolute top-1 left-1/2 -translate-x-1/2 flex items-center justify-center h-5 w-7 rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-black/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                  >
+                    <GripVertical className="h-3 w-3" strokeWidth={2.5} />
+                  </span>
+                )}
                 {!img.alt && (
                   <span
                     className="absolute top-1 right-1 flex items-center justify-center h-5 w-5 rounded-full shadow-sm ring-1 ring-black/10"
@@ -205,6 +433,9 @@ export default function MultiImageField({
                   <span
                     role="button"
                     tabIndex={0}
+                    draggable={false}
+                    onDragStart={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       onTagHotspot(img);
@@ -234,11 +465,53 @@ export default function MultiImageField({
                     <span className="text-[10px] font-medium leading-none">{activeCount}</span>
                   </span>
                 )}
-              </button>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  draggable={false}
+                  onDragStart={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (replacingIndex === null) {
+                      triggerReplacePhoto(index);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (replacingIndex === null) {
+                        triggerReplacePhoto(index);
+                      }
+                    }
+                  }}
+                  title="Replace photo"
+                  aria-label="Replace photo"
+                  aria-disabled={replacingIndex === index}
+                  className="absolute bottom-1 right-1 flex items-center gap-1 h-6 px-1.5 rounded-full bg-background/90 text-foreground shadow-sm ring-1 ring-black/10 opacity-90 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                >
+                  {replacingIndex === index ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3" strokeWidth={2.5} />
+                  )}
+                  <span className="text-[10px] font-medium leading-none hidden sm:inline">Replace</span>
+                </span>
+              </div>
             );
           })}
         </div>
       )}
+
+      {/* Hidden input used by each thumbnail's "Replace" action above */}
+      <input
+        ref={replaceFileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleReplaceFileSelect}
+        className="hidden"
+      />
 
       {/* Add new photos */}
       <div
@@ -248,7 +521,7 @@ export default function MultiImageField({
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
-        onDrop={handleDrop}
+        onDrop={handleFileDrop}
         onClick={() => fileInputRef.current?.click()}
       >
         <input
@@ -270,7 +543,7 @@ export default function MultiImageField({
             <Upload className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm font-body text-foreground">Click to add photos or drag and drop</p>
             <p className="text-xs font-body text-muted-foreground">
-              JPG, PNG, GIF, SVG, or WebP (max 10MB each) &middot; multiple files supported
+              JPG, PNG, GIF, SVG, or WebP (max 4MB each) &middot; multiple files supported
             </p>
           </div>
         )}
@@ -282,21 +555,27 @@ export default function MultiImageField({
         </div>
       )}
 
+      {replaceError && (
+        <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm font-body">
+          {replaceError}
+        </div>
+      )}
+
       {/* Edit modal */}
       <Dialog open={activeIndex !== null} onOpenChange={(open) => !open && closeModal()}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
+        <DialogContent className="w-full max-w-4xl max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border">
             <DialogTitle className="font-heading">Edit image</DialogTitle>
           </DialogHeader>
 
           {activeImage && (
-            <div className="space-y-4">
-              <div className="relative inline-block max-w-full border border-border overflow-hidden bg-muted select-none">
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4">
+              <div className="relative w-full max-h-[50vh] flex items-center justify-center rounded-lg overflow-hidden bg-muted select-none">
                 <img
                   src={activeImage.url}
                   alt={activeAlt || ''}
                   draggable={false}
-                  className="block w-full h-auto object-contain max-h-80"
+                  className="max-h-[50vh] w-auto max-w-full object-contain mx-auto"
                 />
                 {allMatches.map((hotspot, index) => {
                   if (hotspot.xPercent === null || hotspot.yPercent === null) return null;
@@ -400,51 +679,57 @@ export default function MultiImageField({
             </div>
           )}
 
-          <DialogFooter className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+          <DialogFooter className="flex-shrink-0 flex flex-row items-center justify-between gap-1.5 px-4 py-2.5 border-t border-border bg-muted/20">
             <Button
               type="button"
-              variant="outline"
+              size="sm"
+              variant="ghost"
               onClick={handleRemoveActive}
-              className="text-destructive hover:text-destructive font-button shrink-0 w-full sm:w-auto sm:mr-auto"
+              className="text-destructive hover:text-destructive font-button shrink-0 h-8 px-3 text-xs"
             >
-              <X className="h-4 w-4 mr-1.5" />
+              <X className="w-3.5 h-3.5 mr-1" />
               Remove image
             </Button>
-            {onTagHotspot && activeImage && (
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              {onTagHotspot && activeImage && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    onTagHotspot(activeImage);
+                    closeModal();
+                  }}
+                  className="font-button bg-accent text-accent-foreground hover:bg-accent/90 shrink-0 h-8 px-3 text-xs"
+                >
+                  <MapPin className="w-3.5 h-3.5 mr-1" />
+                  Tag amenity hotspot
+                </Button>
+              )}
+              {onReviewHotspots && activeImage && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onReviewHotspots(activeImage);
+                    closeModal();
+                  }}
+                  className="font-button shrink-0 h-8 px-3 text-xs"
+                >
+                  <Tags className="w-3.5 h-3.5 mr-1" />
+                  Review tags
+                </Button>
+              )}
               <Button
                 type="button"
-                onClick={() => {
-                  onTagHotspot(activeImage);
-                  closeModal();
-                }}
-                className="font-button bg-accent text-accent-foreground hover:bg-accent/90 shrink-0 w-full sm:w-auto"
+                size="sm"
+                variant={onTagHotspot ? 'outline' : 'default'}
+                onClick={closeModal}
+                className="font-button shrink-0 h-8 px-3 text-xs"
               >
-                <MapPin className="h-4 w-4 mr-1.5" />
-                Tag amenity hotspot
+                Done
               </Button>
-            )}
-            {onReviewHotspots && activeImage && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  onReviewHotspots(activeImage);
-                  closeModal();
-                }}
-                className="font-button shrink-0 w-full sm:w-auto"
-              >
-                <Tags className="h-4 w-4 mr-1.5" />
-                Review tags
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant={onTagHotspot ? 'outline' : 'default'}
-              onClick={closeModal}
-              className="font-button shrink-0 w-full sm:w-auto"
-            >
-              Done
-            </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

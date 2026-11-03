@@ -322,6 +322,7 @@ export const COLLECTION_LAYOUTS: Record<string, FieldRow[]> = {
     ]},
     { fields: [{ slug: 'location', layout: 'full' }] },
     { fields: [{ slug: 'active', layout: 'full' }] },
+    { fields: [{ slug: 'global-amenity', layout: 'full' }] },
   ],
 
   'buildings': [
@@ -369,8 +370,13 @@ export const COLLECTION_LAYOUTS: Record<string, FieldRow[]> = {
 
     { fields: [{ slug: 'image', layout: 'full' }] },
 
+    { fields: [{ slug: 'mews-product-id', layout: 'full' }] },
+
+    // Column 1: Enable Quantity + Max Quantity Per Room (stacked).
+    // Column 2: Sort. Rendered via a dedicated layout in ItemEditor.tsx.
     { fields: [
-      { slug: 'mews-product-id', layout: 'half' },
+      { slug: 'enable-quantity', layout: 'half' },
+      { slug: 'max-quantity-per-stay', layout: 'half' },
       { slug: 'sort', layout: 'half' }
     ]},
   ],

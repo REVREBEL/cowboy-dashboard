@@ -10,14 +10,19 @@ export interface ImageData {
 }
 
 const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// Webflow's asset pipeline rejects images above 4MB (e.g. "Max size for JPG files
+// is 4 MB"). The upload still "succeeds" at the raw S3 POST step even above this
+// limit, which is why oversized images used to appear to save fine in the portal
+// and then vanish once Webflow's own processing/validation caught up on refresh.
+// Validating against the real limit up front avoids that false-success state.
+export const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
 
 export function validateImageFile(file: File): string | null {
   if (!VALID_IMAGE_TYPES.includes(file.type)) {
     return 'Invalid file type. Please upload JPG, PNG, GIF, SVG, or WebP.';
   }
   if (file.size > MAX_FILE_SIZE) {
-    return 'File too large. Maximum size is 10MB.';
+    return 'File too large. Webflow allows a maximum of 4MB per image.';
   }
   return null;
 }

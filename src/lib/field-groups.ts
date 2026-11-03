@@ -222,7 +222,7 @@ export const FIELD_GROUPS: Record<string, FieldGroup[]> = {
     {
       name: 'Amenities & Policies',
       description: 'Features and policies associated with this room type.',
-      fields: ['features-amenities', 'policies', 'amenity-display-order']
+      fields: ['features-amenities', 'policies', 'amenity-display-order', 'restricted-amenity-ids']
     },
     {
       name: 'Images',
@@ -312,7 +312,7 @@ export const FIELD_GROUPS: Record<string, FieldGroup[]> = {
     {
       name: 'Settings',
       description: 'Organization and display options.',
-      fields: ['type', 'category', 'location', 'active']
+      fields: ['type', 'category', 'location', 'active', 'global-amenity']
     }
   ],
   'buildings': [

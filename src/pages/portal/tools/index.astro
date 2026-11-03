@@ -4,6 +4,7 @@ import MainLayout from '../../../layouts/main.astro';
 import { baseUrl } from '../../../lib/base-url';
 import AltTextManagerClient from '../../../components/tools/AltTextManagerClient';
 import SyncRoomPhotos from '../../../components/SyncRoomPhotos';
+import SyncPhotoHotspots from '../../../components/SyncPhotoHotspots';
 ---
 
 <MainLayout pageClass="portal-tools">
@@ -36,6 +37,13 @@ import SyncRoomPhotos from '../../../components/SyncRoomPhotos';
           Mews integration
         </p>
         <SyncRoomPhotos client:only="react" />
+      </section>
+
+      <section>
+        <p class="text-xs font-button uppercase tracking-wider text-muted-foreground mb-3">
+          Photo hotspots
+        </p>
+        <SyncPhotoHotspots client:only="react" />
       </section>
 
       <section>
